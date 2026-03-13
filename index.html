@@ -193,6 +193,50 @@ td.amber-c { color: var(--amber); }
 .winner-a { background: rgba(200,240,96,0.1); border: 1px solid rgba(200,240,96,0.22); color: var(--accent); }
 .winner-b { background: rgba(96,208,200,0.1); border: 1px solid rgba(96,208,200,0.22); color: var(--accent2); }
 
+/* PRESET TOGGLE */
+.preset-group { display: flex; flex-wrap: wrap; gap: 1px; background: var(--border); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.preset-btn { flex: 1; min-width: 0; padding: 6px 4px; font-family: var(--mono); font-size: 0.62rem; color: var(--muted); background: var(--surface); border: none; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; text-align: center; white-space: nowrap; }
+.preset-btn.active { background: var(--accent); color: var(--bg); font-weight: 500; }
+.preset-btn:hover:not(.active) { background: var(--surface2); }
+
+/* TENURE CHIPS */
+.tenure-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.tenure-chip { padding: 4px 10px; font-family: var(--mono); font-size: 0.65rem; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+.tenure-chip.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 500; }
+.tenure-chip:hover:not(.active) { border-color: var(--border2); color: var(--text); }
+
+/* TOGGLE SWITCH */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.toggle-label { font-size: 0.77rem; color: var(--muted); }
+.toggle-switch { position: relative; width: 34px; height: 18px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-switch .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--surface2); border: 1px solid var(--border2); border-radius: 18px; transition: all 0.25s; }
+.toggle-switch .slider::before { content: ''; position: absolute; width: 12px; height: 12px; left: 2px; bottom: 2px; background: var(--muted); border-radius: 50%; transition: all 0.25s; }
+.toggle-switch input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+.toggle-switch input:checked + .slider::before { transform: translateX(16px); background: var(--bg); }
+
+/* GROSS VS NET ROW */
+.gvn-row { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.gvn-item { text-align: center; flex: 1; }
+.gvn-num { font-family: var(--mono); font-size: 0.82rem; font-weight: 500; }
+.gvn-lbl { font-size: 0.6rem; color: var(--dim); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+/* SUMMARY DETAILS */
+.summary-details { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 1.25rem; overflow: hidden; }
+.summary-details summary { padding: 0.85rem 1.1rem; font-family: var(--serif); font-size: 0.85rem; font-style: italic; color: var(--muted); cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+.summary-details summary::-webkit-details-marker { display: none; }
+.summary-details summary::before { content: '▸'; font-family: var(--mono); font-size: 0.7rem; color: var(--dim); transition: transform 0.2s; }
+.summary-details[open] summary::before { transform: rotate(90deg); }
+.summary-content { padding: 0 1.1rem 1rem; }
+.summary-content ol { padding-left: 1.2rem; font-size: 0.8rem; color: var(--muted); line-height: 1.8; font-family: var(--sans); }
+.summary-content ol li { margin-bottom: 2px; }
+
+/* METRICS 3-COL */
+.metrics-3 { grid-template-columns: repeat(3,1fr); }
+
+/* FULL-WIDTH METRIC */
+.metric-full { grid-column: 1 / -1; }
+
 /* FOOTER */
 footer { text-align: center; padding: 1.5rem 2rem; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.6rem; color: var(--dim); letter-spacing: 0.05em; margin-top: 2rem; }
 footer a { color: var(--muted); text-decoration: none; }
@@ -239,31 +283,66 @@ footer a:hover { color: var(--accent); }
   </div>
   <div class="calc-grid">
     <div class="controls-card no-print">
+      <!-- PRESET SELECTOR -->
+      <div class="controls-title">Product Type</div>
+      <div class="preset-group">
+        <button class="preset-btn" onclick="setPreset('fd')">FD</button>
+        <button class="preset-btn" onclick="setPreset('dps')">DPS</button>
+        <button class="preset-btn" onclick="setPreset('wds')">WDS</button>
+        <button class="preset-btn" onclick="setPreset('mbs')">MBS</button>
+        <button class="preset-btn active" onclick="setPreset('custom')">Custom</button>
+      </div>
+
+      <!-- TENURE CHIPS (hidden by default, shown for FD/WDS) -->
+      <div class="field" id="d-tenure-chips-wrap" style="display:none">
+        <div class="field-header"><span class="field-label">Select tenor</span></div>
+        <div class="tenure-chips" id="d-tenure-chips"></div>
+      </div>
+
+      <div class="divider"></div>
       <div class="controls-title">Parameters</div>
-      <div class="field">
+
+      <!-- INITIAL DEPOSIT -->
+      <div class="field" id="d-principal-wrap">
         <div class="field-header"><span class="field-label">Initial deposit</span><span class="field-value" id="d-principal-out">—</span></div>
         <input type="range" id="d-principal" min="10000" max="5000000" step="10000" value="100000" oninput="calcDeposit()">
       </div>
-      <div class="field">
+
+      <!-- MONTHLY CONTRIBUTION -->
+      <div class="field" id="d-contrib-wrap">
         <div class="field-header"><span class="field-label" id="d-contrib-label">Monthly contribution</span><span class="field-value" id="d-contrib-out">—</span></div>
         <input type="range" id="d-contrib" min="0" max="200000" step="1000" value="5000" oninput="calcDeposit()">
       </div>
-      <div class="field">
+
+      <!-- WEEKLY INSTALMENT (WDS only) -->
+      <div class="field" id="d-weekly-wrap" style="display:none">
+        <div class="field-header"><span class="field-label">Weekly instalment</span><span class="field-value" id="d-weekly-out">—</span></div>
+        <input type="range" id="d-weekly" min="100" max="50000" step="100" value="500" oninput="calcDeposit()">
+      </div>
+
+      <!-- CONTRIBUTION FREQUENCY -->
+      <div class="field" id="d-freq-wrap">
         <div class="field-header"><span class="field-label">Contribution frequency</span></div>
         <select id="d-contrib-freq" onchange="calcDeposit()">
           <option value="monthly">Monthly</option>
           <option value="weekly">Weekly</option>
         </select>
       </div>
+
+      <!-- ANNUAL RATE -->
       <div class="field">
         <div class="field-header"><span class="field-label">Annual interest rate</span><span class="field-value" id="d-rate-out">—</span></div>
         <input type="range" id="d-rate" min="1" max="20" step="0.25" value="8.5" oninput="calcDeposit()">
       </div>
-      <div class="field">
+
+      <!-- TIME HORIZON -->
+      <div class="field" id="d-years-wrap">
         <div class="field-header"><span class="field-label">Time horizon</span><span class="field-value" id="d-years-out">—</span></div>
         <input type="range" id="d-years" min="1" max="40" step="1" value="15" oninput="calcDeposit()">
       </div>
-      <div class="field">
+
+      <!-- COMPOUNDING FREQUENCY -->
+      <div class="field" id="d-compound-wrap">
         <div class="field-header"><span class="field-label">Compounding frequency</span></div>
         <select id="d-freq" onchange="calcDeposit()">
           <option value="12">Monthly</option>
@@ -272,31 +351,70 @@ footer a:hover { color: var(--accent); }
           <option value="1">Annually</option>
         </select>
       </div>
+
       <div class="divider"></div>
+
+      <!-- ADJUSTMENTS: ED & SOURCE TAX -->
+      <div class="controls-title">Adjustments</div>
+      <div class="toggle-row">
+        <span class="toggle-label">Excise duty (ED)</span>
+        <label class="toggle-switch"><input type="checkbox" id="d-ed-toggle" checked onchange="calcDeposit()"><span class="slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Source tax on interest</span>
+        <label class="toggle-switch"><input type="checkbox" id="d-tax-toggle" checked onchange="calcDeposit()"><span class="slider"></span></label>
+      </div>
+      <div class="field" id="d-tin-wrap">
+        <div class="field-header"><span class="field-label">TIN status</span></div>
+        <select id="d-tin" onchange="calcDeposit()">
+          <option value="tin">TIN holder — 10%</option>
+          <option value="notin">Non-TIN holder — 15%</option>
+        </select>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- BREAKDOWN -->
       <div class="breakdown-wrap">
         <div class="breakdown-title">Principal vs Interest</div>
         <div class="breakdown-bar"><div class="bar-a" id="d-bar-p" style="flex:50"></div><div class="bar-b" id="d-bar-i" style="flex:50"></div></div>
         <div class="bar-labels"><span id="d-bar-pl">—</span><span id="d-bar-il">—</span></div>
+        <div class="gvn-row" id="d-gvn-row">
+          <div class="gvn-item"><div class="gvn-num" style="color:var(--accent)" id="d-gvn-gross">—</div><div class="gvn-lbl">Gross return</div></div>
+          <div class="gvn-item"><div class="gvn-num" style="color:var(--accent2)" id="d-gvn-net">—</div><div class="gvn-lbl">Net return</div></div>
+          <div class="gvn-item"><div class="gvn-num" style="color:var(--warn)" id="d-gvn-loss">—</div><div class="gvn-lbl">Yield loss</div></div>
+        </div>
       </div>
       <div class="insight-box"><div class="insight-text" id="d-insight">—</div></div>
     </div>
     <div>
-      <div class="metrics">
-        <div class="metric"><span class="metric-label">Future value</span><span class="metric-value accent" id="d-future">—</span><span class="metric-sub">At end of term</span></div>
-        <div class="metric"><span class="metric-label">Interest earned</span><span class="metric-value teal" id="d-interest">—</span><span class="metric-sub">Money made on money</span></div>
+      <!-- METRICS -->
+      <div class="metrics" id="d-metrics">
+        <div class="metric"><span class="metric-label">Future value (gross)</span><span class="metric-value accent" id="d-future">—</span><span class="metric-sub">Before deductions</span></div>
+        <div class="metric"><span class="metric-label">Interest earned</span><span class="metric-value teal" id="d-interest">—</span><span class="metric-sub">Gross interest</span></div>
         <div class="metric"><span class="metric-label">Total invested</span><span class="metric-value" id="d-invested">—</span><span class="metric-sub">Principal + contributions</span></div>
         <div class="metric"><span class="metric-label">Effective annual yield</span><span class="metric-value" id="d-eay">—</span><span class="metric-sub">After compounding</span></div>
+        <div class="metric" id="d-ed-metric"><span class="metric-label">Total excise duty</span><span class="metric-value warn" id="d-ed-total">—</span><span class="metric-sub">Annual ED deducted</span></div>
+        <div class="metric" id="d-tax-metric"><span class="metric-label">Source tax withheld</span><span class="metric-value warn" id="d-tax-total">—</span><span class="metric-sub" id="d-tax-sub">10% on interest</span></div>
+        <div class="metric" id="d-monthly-payout-metric" style="display:none"><span class="metric-label">Monthly payout</span><span class="metric-value accent" id="d-monthly-payout">—</span><span class="metric-sub">Simple interest payout</span></div>
+        <div class="metric" id="d-annual-deposit-metric" style="display:none"><span class="metric-label">Annual deposit</span><span class="metric-value accent" id="d-annual-deposit">—</span><span class="metric-sub">52 weekly instalments</span></div>
+        <div class="metric metric-full" style="border-top:2px solid var(--accent2)"><span class="metric-label">Net receivable</span><span class="metric-value" style="color:var(--accent2);font-size:1.3rem" id="d-net-recv">—</span><span class="metric-sub">After excise duty &amp; source tax</span></div>
       </div>
+
+      <!-- CHART -->
       <div class="chart-card">
         <div class="chart-header">
           <span class="chart-title">Growth over time</span>
           <div class="legend">
-            <span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span>Balance</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span>Net balance</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--accent);opacity:0.35"></span>Gross balance</span>
             <span class="legend-item"><span class="legend-dot" style="background:var(--dim)"></span>Invested</span>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="d-chart"></canvas></div>
       </div>
+
+      <!-- TABLE -->
       <div class="table-card">
         <div class="table-head-row">
           <span class="table-head-title" id="d-table-title">Year-by-year breakdown</span>
@@ -307,11 +425,23 @@ footer a:hover { color: var(--accent); }
         </div>
         <div class="table-scroll">
           <table>
-            <thead><tr id="d-thead"><th style="width:13%">Year</th><th>Opening</th><th>Contributions</th><th>Interest</th><th>Closing</th></tr></thead>
+            <thead><tr id="d-thead"><th style="width:8%">Year</th><th>Opening</th><th>Contrib</th><th>Interest</th><th>ED</th><th>Tax</th><th>Net Close</th></tr></thead>
             <tbody id="d-table"></tbody>
           </table>
         </div>
       </div>
+
+      <!-- PLAIN LANGUAGE SUMMARY -->
+      <details class="summary-details">
+        <summary>What this means for you · আপনার জন্য এর মানে কী</summary>
+        <div class="summary-content">
+          <ol id="d-summary-list">
+            <li id="d-sum-1">—</li>
+            <li id="d-sum-2">—</li>
+            <li id="d-sum-3">—</li>
+          </ol>
+        </div>
+      </details>
     </div>
   </div>
 </div>
@@ -595,107 +725,391 @@ function exportPDF(){
   window.print();
 }
 
-// ── DEPOSIT ────────────────────────────────────────────────────────────────────
-function calcDeposit(){
-  const P=+document.getElementById('d-principal').value;
-  const contribAmt=+document.getElementById('d-contrib').value;
-  const rate=+document.getElementById('d-rate').value;
-  const years=+document.getElementById('d-years').value;
-  const n=+document.getElementById('d-freq').value;
-  const contribFreq=document.getElementById('d-contrib-freq').value;
-  const tableView=document.getElementById('d-table-view').value;
+// ── DEPOSIT PRESETS ────────────────────────────────────────────────────────────
+let currentPreset='custom';
 
-  const freqLabel=contribFreq==='weekly'?'Weekly contribution':'Monthly contribution';
-  document.getElementById('d-contrib-label').textContent=freqLabel;
+function setPreset(p){
+  currentPreset=p;
+  document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===p));
+  const show=(id,v)=>{document.getElementById(id).style.display=v?'':'none';};
+  // Reset visibility
+  show('d-principal-wrap',true); show('d-contrib-wrap',true); show('d-weekly-wrap',false);
+  show('d-freq-wrap',true); show('d-compound-wrap',true); show('d-years-wrap',true);
+  show('d-tenure-chips-wrap',false); show('d-monthly-payout-metric',false); show('d-annual-deposit-metric',false);
+  document.getElementById('d-contrib-label').textContent='Monthly contribution';
+
+  if(p==='fd'){
+    document.getElementById('d-principal').value=100000;
+    document.getElementById('d-contrib').value=0; show('d-contrib-wrap',false);
+    show('d-freq-wrap',false);
+    document.getElementById('d-contrib-freq').value='monthly';
+    document.getElementById('d-freq').value='4'; show('d-compound-wrap',false);
+    document.getElementById('d-rate').value=9.5;
+    document.getElementById('d-years').value=1;
+    buildTenureChips([{l:'3m',v:0.25},{l:'6m',v:0.5},{l:'1y',v:1},{l:'2y',v:2},{l:'3y',v:3}],1);
+  } else if(p==='dps'){
+    document.getElementById('d-principal').value=0; show('d-principal-wrap',false);
+    document.getElementById('d-contrib').value=5000;
+    document.getElementById('d-contrib-label').textContent='Monthly instalment';
+    show('d-freq-wrap',false);
+    document.getElementById('d-contrib-freq').value='monthly';
+    document.getElementById('d-freq').value='12'; show('d-compound-wrap',false);
+    document.getElementById('d-rate').value=11;
+    document.getElementById('d-years').value=5;
+  } else if(p==='wds'){
+    show('d-principal-wrap',false); show('d-contrib-wrap',false); show('d-freq-wrap',false);
+    show('d-weekly-wrap',true); show('d-annual-deposit-metric',true); show('d-compound-wrap',false);
+    show('d-years-wrap',false);
+    document.getElementById('d-principal').value=0;
+    document.getElementById('d-weekly').value=500;
+    document.getElementById('d-contrib-freq').value='weekly';
+    document.getElementById('d-freq').value='12';
+    document.getElementById('d-rate').value=10.5;
+    document.getElementById('d-years').value=1;
+    buildTenureChips([{l:'3m',v:0.25},{l:'6m',v:0.5},{l:'9m',v:0.75},{l:'12m',v:1}],1);
+  } else if(p==='mbs'){
+    document.getElementById('d-principal').value=500000;
+    document.getElementById('d-contrib').value=0; show('d-contrib-wrap',false);
+    show('d-freq-wrap',false); show('d-compound-wrap',false);
+    show('d-monthly-payout-metric',true);
+    document.getElementById('d-contrib-freq').value='monthly';
+    document.getElementById('d-freq').value='12';
+    document.getElementById('d-rate').value=10;
+    document.getElementById('d-years').value=3;
+  } else {
+    // Custom — restore all defaults
+    document.getElementById('d-principal').value=100000;
+    document.getElementById('d-contrib').value=5000;
+    document.getElementById('d-rate').value=8.5;
+    document.getElementById('d-years').value=15;
+    document.getElementById('d-freq').value='12';
+    document.getElementById('d-contrib-freq').value='monthly';
+  }
+  calcDeposit();
+}
+
+function buildTenureChips(options, defaultVal){
+  const wrap=document.getElementById('d-tenure-chips-wrap');
+  const cont=document.getElementById('d-tenure-chips');
+  wrap.style.display='';
+  cont.innerHTML=options.map(o=>`<button class="tenure-chip${o.v===defaultVal?' active':''}" onclick="selectTenure(${o.v},this)">${o.l}</button>`).join('');
+}
+
+function selectTenure(val,el){
+  document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  // For fractional years (<1), set slider to 1 but store actual value
+  document.getElementById('d-years').value=Math.max(1,Math.floor(val));
+  document.getElementById('d-years').dataset.actual=val;
+  calcDeposit();
+}
+
+// ── EXCISE DUTY SLABS (BDT) ──────────────────────────────────────────────────
+function getED(balBDT){
+  if(balBDT<=100000) return 0;
+  if(balBDT<=1000000) return 150;
+  if(balBDT<=5000000) return 500;
+  if(balBDT<=10000000) return 3000;
+  if(balBDT<=50000000) return 15000;
+  return 40000;
+}
+
+// ── DEPOSIT CALC ──────────────────────────────────────────────────────────────
+function calcDeposit(){
+  const isMBS=(currentPreset==='mbs');
+  const isWDS=(currentPreset==='wds');
+  const isFD=(currentPreset==='fd');
+
+  // Read inputs
+  const P=+document.getElementById('d-principal').value;
+  let contribAmt=isWDS?0:+document.getElementById('d-contrib').value;
+  const weeklyAmt=isWDS?+document.getElementById('d-weekly').value:0;
+  const rate=+document.getElementById('d-rate').value;
+  const n=+document.getElementById('d-freq').value;
+  const tableView=document.getElementById('d-table-view').value;
+  const edOn=document.getElementById('d-ed-toggle').checked;
+  const taxOn=document.getElementById('d-tax-toggle').checked;
+  const taxRate=document.getElementById('d-tin').value==='tin'?0.10:0.15;
+
+  // Handle fractional years from tenure chips
+  const actualYears=document.getElementById('d-years').dataset.actual;
+  let years;
+  if(actualYears && (isFD || isWDS)){
+    years=parseFloat(actualYears);
+  } else {
+    years=+document.getElementById('d-years').value;
+    document.getElementById('d-years').dataset.actual='';
+  }
+  const totalMonths=Math.round(years*12);
+
+  // Determine contribution mode
+  let contribFreq;
+  if(isWDS){
+    contribFreq='weekly';
+    contribAmt=weeklyAmt; // weekly amount, used directly in weekly loop
+  } else {
+    contribFreq=document.getElementById('d-contrib-freq').value;
+  }
+
+  // Update labels
   document.getElementById('d-principal-out').textContent=fmt(P);
   document.getElementById('d-contrib-out').textContent=fmt(contribAmt);
+  if(isWDS) document.getElementById('d-weekly-out').textContent=fmt(weeklyAmt);
   document.getElementById('d-rate-out').textContent=rate.toFixed(2)+'%';
-  document.getElementById('d-years-out').textContent=years+(years>1?' years':' year');
+  const termLabel=years<1?(totalMonths+' month'+(totalMonths>1?'s':'')):years+(years>1?' years':' year');
+  document.getElementById('d-years-out').textContent=termLabel;
+  document.getElementById('d-tax-sub').textContent=(taxRate*100).toFixed(0)+'% on interest';
 
-  const labels=[],balances=[],invested=[],rows=[];
+  // WDS annual deposit metric
+  if(isWDS){
+    document.getElementById('d-annual-deposit').textContent=fmt(weeklyAmt*52);
+  }
+
+  // ── MBS: Simple interest payout (principal returned at maturity) ─────────
+  if(isMBS){
+    const monthlyPayout=(P*rate/100)/12;
+    document.getElementById('d-monthly-payout').textContent=fmt(monthlyPayout);
+
+    const grossInterest=monthlyPayout*totalMonths;
+    const totalInvested=P;
+    const grossFV=P+grossInterest;
+
+    // ED on principal balance each year
+    let totalED=0;
+    const fullYears=Math.floor(years);
+    const usdRate=110;
+    for(let y=0;y<fullYears;y++){
+      if(edOn){
+        const balForED=currency==='BDT'?P:P*usdRate;
+        totalED+=currency==='BDT'?getED(balForED):getED(balForED)/usdRate;
+      }
+    }
+
+    // Source tax on interest
+    let totalTax=0;
+    if(taxOn) totalTax=grossInterest*taxRate;
+
+    const netRecv=grossFV-totalED-totalTax;
+    const netInterest=grossInterest-totalTax;
+
+    document.getElementById('d-future').textContent=fmt(grossFV);
+    document.getElementById('d-interest').textContent=fmt(grossInterest);
+    document.getElementById('d-invested').textContent=fmt(totalInvested);
+    document.getElementById('d-eay').textContent=rate.toFixed(3)+'%';
+    document.getElementById('d-ed-total').textContent=fmt(totalED);
+    document.getElementById('d-tax-total').textContent=fmt(totalTax);
+    document.getElementById('d-net-recv').textContent=fmt(netRecv);
+
+    // Breakdown
+    const pPct=Math.round((totalInvested/grossFV)*100), iPct=100-pPct;
+    document.getElementById('d-bar-p').style.flex=pPct;
+    document.getElementById('d-bar-i').style.flex=iPct;
+    document.getElementById('d-bar-pl').textContent='Principal '+pPct+'%';
+    document.getElementById('d-bar-il').textContent='Interest '+iPct+'%';
+    const grossRetPct=totalInvested>0?((grossInterest/totalInvested)*100):0;
+    const netRetPct=totalInvested>0?((netInterest-totalED)/totalInvested*100):0;
+    document.getElementById('d-gvn-gross').textContent=grossRetPct.toFixed(2)+'%';
+    document.getElementById('d-gvn-net').textContent=netRetPct.toFixed(2)+'%';
+    document.getElementById('d-gvn-loss').textContent=(grossRetPct-netRetPct).toFixed(2)+'%';
+
+    document.getElementById('d-insight').textContent=
+      `MBS pays ${fmt(monthlyPayout)}/month. Principal ${fmt(P)} is returned at maturity. Net after deductions: ${fmt(netRecv)}.`;
+
+    // Chart: flat principal line + accumulated payout
+    const labels=[],grossBals=[],netBals=[],investedArr=[];
+    let gBal=P,nBal=P;
+    for(let y=1;y<=Math.max(1,fullYears);y++){
+      const yInt=monthlyPayout*12;
+      gBal=P; // principal stays flat, but we show cumulative value
+      const cumGross=P+yInt*y;
+      const cumTax=taxOn?yInt*y*taxRate:0;
+      const cumED=edOn?(()=>{let e=0;const b=currency==='BDT'?P:P*usdRate;for(let i=0;i<y;i++)e+=currency==='BDT'?getED(b):getED(b)/usdRate;return e;})():0;
+      labels.push(years<1?totalMonths+'m':'Yr '+y);
+      grossBals.push(Math.round(cumGross));
+      netBals.push(Math.round(cumGross-cumTax-cumED));
+      investedArr.push(Math.round(P));
+    }
+
+    const tc=getChartColors();
+    if(dChart){dChart.destroy();dChart=null;}
+    dChart=new Chart(document.getElementById('d-chart'),{type:'line',data:{labels,datasets:[
+      {data:netBals,borderColor:tc.accent,backgroundColor:alpha(tc.accent,0.07),fill:true,tension:0.35,pointRadius:0,borderWidth:2},
+      {data:grossBals,borderColor:tc.accent,backgroundColor:'transparent',fill:false,tension:0.35,pointRadius:0,borderWidth:1.5,borderDash:[5,3]},
+      {data:investedArr,borderColor:tc.dim,backgroundColor:alpha(tc.dim,0.04),fill:true,tension:0,pointRadius:0,borderWidth:1.5,borderDash:[4,3]}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)}}},scales:{
+      x:{grid:{color:tc.grid},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},maxTicksLimit:10}},
+      y:{grid:{color:tc.grid},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},callback:fmtS}}
+    }}});
+
+    // MBS table
+    const thead=document.getElementById('d-thead');
+    thead.innerHTML='<th style="width:8%">Year</th><th>Principal</th><th>Payout</th><th>ED</th><th>Tax</th><th>Net Value</th>';
+    document.getElementById('d-table-title').textContent='Year-by-year breakdown';
+    let thtml='';
+    for(let y=1;y<=Math.max(1,fullYears);y++){
+      const yPay=monthlyPayout*12;
+      const yED=edOn?(()=>{const b=currency==='BDT'?P:P*110;return currency==='BDT'?getED(b):getED(b)/110;})():0;
+      const yTax=taxOn?yPay*taxRate:0;
+      const cumPay=yPay*y;
+      const cumED=yED*y;
+      const cumTax=yTax*y;
+      thtml+=`<tr><td>${y}</td><td>${fmt(P)}</td><td class="pos">${fmt(cumPay)}</td><td class="neg">${fmt(cumED)}</td><td class="neg">${fmt(cumTax)}</td><td>${fmt(P+cumPay-cumED-cumTax)}</td></tr>`;
+    }
+    document.getElementById('d-table').innerHTML=thtml;
+
+    // Summary
+    document.getElementById('d-sum-1').textContent=`You are depositing ${fmt(P)} at ${rate}% for ${termLabel} (Monthly Benefit Scheme).`;
+    document.getElementById('d-sum-2').textContent=`After excise duty (${fmt(totalED)}) and source tax (${fmt(totalTax)}), your net receivable is ${fmt(netRecv)}.`;
+    const netYield=totalInvested>0?((netRecv-totalInvested)/totalInvested/(years||1)*100):0;
+    document.getElementById('d-sum-3').textContent=`Your effective net yield is ${netYield.toFixed(2)}% per year.`;
+    return;
+  }
+
+  // ── Standard compound interest path (FD, DPS, WDS, Custom) ──────────────
+  const labels=[],grossBalances=[],netBalances=[],investedArr=[],rows=[];
   const weeklyRows=[];
-  let balance=P, totalContrib=0;
+  let grossBal=P, netBal=P, totalContrib=0, totalED=0, totalTax=0, totalGrossInterest=0;
+  const usdRate=110;
+  const fullYears=Math.ceil(years);
+  const fracMonths=totalMonths;
 
   if(contribFreq==='weekly'){
     const rPer=rate/100/n;
     const compEveryW=52/n;
     let wSinceComp=0;
-    for(let y=1;y<=years;y++){
-      const openBal=balance;
-      let yi=0,yc=0;
-      for(let w=0;w<52;w++){
-        balance+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
+    for(let y=1;y<=fullYears;y++){
+      const weeksThisYear=(y===fullYears && years!==fullYears)?Math.round((years-(y-1))*52):52;
+      const openGross=grossBal, openNet=netBal;
+      let yiGross=0,yiNet=0,yc=0,yTax=0;
+      for(let w=0;w<weeksThisYear;w++){
+        grossBal+=contribAmt; netBal+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
         wSinceComp++;
         if(wSinceComp>=compEveryW){
           wSinceComp-=compEveryW;
-          const int=balance*rPer; yi+=int; balance+=int;
+          const gInt=grossBal*rPer; yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
+          let nInt=netBal*rPer;
+          let taxAmt=0;
+          if(taxOn){taxAmt=nInt*taxRate; nInt-=taxAmt; yTax+=taxAmt; totalTax+=taxAmt;}
+          yiNet+=nInt; netBal+=nInt;
         }
-        weeklyRows.push({week:(y-1)*52+w+1,year:y,weekInYear:w+1,contrib:contribAmt,balance:balance});
+        weeklyRows.push({week:(y-1)*52+w+1,year:y,weekInYear:w+1,contrib:contribAmt,grossBal:grossBal,netBal:netBal});
       }
-      labels.push('Yr '+y);
-      balances.push(Math.round(balance));
-      invested.push(Math.round(P+totalContrib));
-      rows.push({year:y,open:openBal,contrib:yc,interest:yi,close:balance});
+      // Year-end ED
+      let yED=0;
+      if(edOn){
+        const balForED=currency==='BDT'?netBal:netBal*usdRate;
+        yED=currency==='BDT'?getED(balForED):getED(balForED)/usdRate;
+        netBal-=yED; totalED+=yED;
+      }
+      labels.push(years<1?totalMonths+'m':'Yr '+y);
+      grossBalances.push(Math.round(grossBal));
+      netBalances.push(Math.round(netBal));
+      investedArr.push(Math.round(P+totalContrib));
+      rows.push({year:y,open:openNet,contrib:yc,grossInterest:yiGross,netInterest:yiNet,ed:yED,tax:yTax,grossClose:grossBal,netClose:netBal});
     }
   } else {
-    for(let y=1;y<=years;y++){
-      const openBal=balance;
-      let yi=0, yc=0;
-      for(let mo=0;mo<12;mo++){
-        balance+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
-        const doC=(n===12||(n===4&&mo%3===2)||(n===2&&mo%6===5)||(n===1&&mo===11));
-        if(doC){ const rp=rate/100/n; const int=balance*rp; yi+=int; balance+=int; }
+    // Monthly contribution path
+    for(let y=1;y<=fullYears;y++){
+      const monthsThisYear=(y===fullYears && totalMonths%12!==0 && years<fullYears)?(totalMonths-(y-1)*12):12;
+      const openGross=grossBal, openNet=netBal;
+      let yiGross=0,yiNet=0,yc=0,yTax=0;
+      for(let mo=0;mo<monthsThisYear;mo++){
+        if(!isFD){
+          grossBal+=contribAmt; netBal+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
+        }
+        const doC=(n===12||(n===4&&mo%3===2)||(n===2&&mo%6===5)||(n===1&&mo===11)||(monthsThisYear<12&&mo===monthsThisYear-1));
+        if(doC){
+          const rp=rate/100/n;
+          // For fractional year compounding, adjust if needed
+          const periodsInChunk=(n===12)?1:(n===4)?1:(n===2)?1:1;
+          const gInt=grossBal*rp; yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
+          let nInt=netBal*rp;
+          let taxAmt=0;
+          if(taxOn){taxAmt=nInt*taxRate; nInt-=taxAmt; yTax+=taxAmt; totalTax+=taxAmt;}
+          yiNet+=nInt; netBal+=nInt;
+        }
       }
-      labels.push('Yr '+y);
-      balances.push(Math.round(balance));
-      invested.push(Math.round(P+totalContrib));
-      rows.push({year:y,open:openBal,contrib:yc,interest:yi,close:balance});
+      // Year-end ED
+      let yED=0;
+      if(edOn){
+        const balForED=currency==='BDT'?netBal:netBal*usdRate;
+        yED=currency==='BDT'?getED(balForED):getED(balForED)/usdRate;
+        netBal-=yED; totalED+=yED;
+      }
+      labels.push(years<1?totalMonths+'m':'Yr '+y);
+      grossBalances.push(Math.round(grossBal));
+      netBalances.push(Math.round(netBal));
+      investedArr.push(Math.round(P+totalContrib));
+      rows.push({year:y,open:openNet,contrib:yc,grossInterest:yiGross,netInterest:yiNet,ed:yED,tax:yTax,grossClose:grossBal,netClose:netBal});
     }
   }
 
-  const finalBal=balances[balances.length-1];
+  const finalGross=grossBalances[grossBalances.length-1]||0;
+  const finalNet=netBalances[netBalances.length-1]||0;
   const totalInvested=P+totalContrib;
-  const totalInterest=finalBal-totalInvested;
   const eay=(Math.pow(1+rate/100/n,n)-1)*100;
 
-  document.getElementById('d-future').textContent=fmt(finalBal);
-  document.getElementById('d-interest').textContent=fmt(totalInterest);
+  document.getElementById('d-future').textContent=fmt(finalGross);
+  document.getElementById('d-interest').textContent=fmt(totalGrossInterest);
   document.getElementById('d-invested').textContent=fmt(totalInvested);
   document.getElementById('d-eay').textContent=eay.toFixed(3)+'%';
+  document.getElementById('d-ed-total').textContent=fmt(totalED);
+  document.getElementById('d-tax-total').textContent=fmt(totalTax);
+  document.getElementById('d-net-recv').textContent=fmt(finalNet);
 
-  const pPct=Math.round((totalInvested/finalBal)*100), iPct=100-pPct;
-  document.getElementById('d-bar-p').style.flex=pPct;
-  document.getElementById('d-bar-i').style.flex=iPct;
+  // Breakdown bar
+  const pPct=finalGross>0?Math.round((totalInvested/finalGross)*100):50, iPct=100-pPct;
+  document.getElementById('d-bar-p').style.flex=Math.max(1,pPct);
+  document.getElementById('d-bar-i').style.flex=Math.max(1,iPct);
   document.getElementById('d-bar-pl').textContent='Principal '+pPct+'%';
   document.getElementById('d-bar-il').textContent='Interest '+iPct+'%';
-  document.getElementById('d-insight').textContent=
-    `At ${rate}%, money doubles every ~${(72/rate).toFixed(1)} years. Your ${fmt(totalInvested)} grows to ${fmt(finalBal)} — ${iPct}% is pure interest.`;
 
+  // Gross vs Net row
+  const grossRetPct=totalInvested>0?((finalGross-totalInvested)/totalInvested*100):0;
+  const netRetPct=totalInvested>0?((finalNet-totalInvested)/totalInvested*100):0;
+  document.getElementById('d-gvn-gross').textContent=grossRetPct.toFixed(2)+'%';
+  document.getElementById('d-gvn-net').textContent=netRetPct.toFixed(2)+'%';
+  document.getElementById('d-gvn-loss').textContent=(grossRetPct-netRetPct).toFixed(2)+'%';
+
+  document.getElementById('d-insight').textContent=
+    `At ${rate}%, money doubles every ~${(72/rate).toFixed(1)} years. Your ${fmt(totalInvested)} grows to ${fmt(finalGross)} gross (${fmt(finalNet)} net) — ${iPct}% is interest.`;
+
+  // Chart: 3 lines — net, gross (dashed), invested (dashed gray)
   const tc=getChartColors();
-  if(dChart){ dChart.data.labels=labels; dChart.data.datasets[0].data=balances; dChart.data.datasets[1].data=invested; dChart.update('none'); }
-  else dChart=new Chart(document.getElementById('d-chart'),{type:'line',data:{labels,datasets:[
-    {data:balances,borderColor:tc.accent,backgroundColor:alpha(tc.accent,0.07),fill:true,tension:0.35,pointRadius:0,borderWidth:2},
-    {data:invested,borderColor:tc.dim,backgroundColor:alpha(tc.dim,0.04),fill:true,tension:0,pointRadius:0,borderWidth:1.5,borderDash:[4,3]}
+  if(dChart){dChart.destroy();dChart=null;}
+  dChart=new Chart(document.getElementById('d-chart'),{type:'line',data:{labels,datasets:[
+    {data:netBalances,borderColor:tc.accent,backgroundColor:alpha(tc.accent,0.07),fill:true,tension:0.35,pointRadius:0,borderWidth:2},
+    {data:grossBalances,borderColor:tc.accent,backgroundColor:'transparent',fill:false,tension:0.35,pointRadius:0,borderWidth:1.5,borderDash:[5,3]},
+    {data:investedArr,borderColor:tc.dim,backgroundColor:alpha(tc.dim,0.04),fill:true,tension:0,pointRadius:0,borderWidth:1.5,borderDash:[4,3]}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)}}},scales:{
     x:{grid:{color:tc.grid},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},maxTicksLimit:10}},
     y:{grid:{color:tc.grid},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},callback:fmtS}}
   }}});
 
+  // Table
   const thead=document.getElementById('d-thead');
   if(tableView==='weekly'){
     document.getElementById('d-table-title').textContent='Week-by-week breakdown';
-    thead.innerHTML='<th style="width:10%">Week</th><th>Year</th><th>Contribution</th><th colspan="1"></th><th>Balance</th>';
+    thead.innerHTML='<th style="width:8%">Week</th><th>Year</th><th>Contrib</th><th colspan="2"></th><th>Gross</th><th>Net</th>';
     const wRows=contribFreq==='weekly'?weeklyRows:[];
     if(wRows.length===0){
-      document.getElementById('d-table').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">Select weekly contribution frequency to see weekly breakdown</td></tr>';
+      document.getElementById('d-table').innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:1.5rem">Select weekly contribution frequency to see weekly breakdown</td></tr>';
     } else {
-      document.getElementById('d-table').innerHTML=wRows.map(r=>`<tr><td>${r.week}</td><td>Yr ${r.year}</td><td class="teal">${fmt(r.contrib)}</td><td></td><td>${fmt(r.balance)}</td></tr>`).join('');
+      document.getElementById('d-table').innerHTML=wRows.map(r=>`<tr><td>${r.week}</td><td>Yr ${r.year}</td><td class="teal">${fmt(r.contrib)}</td><td></td><td></td><td>${fmt(r.grossBal)}</td><td>${fmt(r.netBal)}</td></tr>`).join('');
     }
   } else {
     document.getElementById('d-table-title').textContent='Year-by-year breakdown';
-    thead.innerHTML='<th style="width:13%">Year</th><th>Opening</th><th>Contributions</th><th>Interest</th><th>Closing</th>';
-    document.getElementById('d-table').innerHTML=rows.map(r=>`<tr><td>${r.year}</td><td>${fmt(r.open)}</td><td class="teal">${fmt(r.contrib)}</td><td class="pos">${fmt(r.interest)}</td><td>${fmt(r.close)}</td></tr>`).join('');
+    thead.innerHTML='<th style="width:8%">Year</th><th>Opening</th><th>Contrib</th><th>Interest</th><th>ED</th><th>Tax</th><th>Net Close</th>';
+    document.getElementById('d-table').innerHTML=rows.map(r=>`<tr><td>${r.year}</td><td>${fmt(r.open)}</td><td class="teal">${fmt(r.contrib)}</td><td class="pos">${fmt(r.grossInterest)}</td><td class="neg">${r.ed>0?fmt(r.ed):'—'}</td><td class="neg">${r.tax>0?fmt(r.tax):'—'}</td><td>${fmt(r.netClose)}</td></tr>`).join('');
   }
+
+  // Summary
+  const prodName=currentPreset==='fd'?'Fixed Deposit':currentPreset==='dps'?'DPS':currentPreset==='wds'?'Weekly Deposit Scheme':'deposit';
+  const amtDesc=isWDS?`${fmt(weeklyAmt)}/week`:contribAmt>0?`${fmt(P)} + ${fmt(contribAmt)}/month`:fmt(P);
+  document.getElementById('d-sum-1').textContent=`You are depositing ${amtDesc} at ${rate}% for ${termLabel} (${prodName}).`;
+  document.getElementById('d-sum-2').textContent=`After excise duty (${fmt(totalED)}) and source tax (${fmt(totalTax)}), your net receivable is ${fmt(finalNet)}.`;
+  const netYield=totalInvested>0&&years>0?((finalNet-totalInvested)/totalInvested/years*100):0;
+  document.getElementById('d-sum-3').textContent=`Your effective net yield is ${netYield.toFixed(2)}% per year.`;
 }
 
 // ── LOAN + PREPAYMENT ──────────────────────────────────────────────────────────
