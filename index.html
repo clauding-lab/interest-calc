@@ -3,19 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FinCalc — Compound Interest Suite</title>
+<title>InCalc — Compound Interest Suite</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
+  --bg: #f5f5f0; --surface: #ffffff; --surface2: #eceae5;
+  --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.15);
+  --text: #1a1a18; --muted: #6b6965; --dim: #9a9590;
+  --accent: #4a8c20; --accent2: #1a8a80; --warn: #c04030; --amber: #b08020;
+  --chart-grid: rgba(0,0,0,0.06); --chart-tick: #9a9590;
+  --mono: 'DM Mono', monospace; --serif: 'Fraunces', serif; --sans: 'DM Sans', sans-serif;
+  --radius: 10px; --radius-lg: 16px;
+}
+html.dark-mode {
   --bg: #0c0e0f; --surface: #141618; --surface2: #1c1f21;
   --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
   --text: #edecea; --muted: #7a7975; --dim: #4a4845;
   --accent: #c8f060; --accent2: #60d0c8; --warn: #f07060; --amber: #f0c060;
-  --mono: 'DM Mono', monospace; --serif: 'Fraunces', serif; --sans: 'DM Sans', sans-serif;
-  --radius: 10px; --radius-lg: 16px;
+  --chart-grid: rgba(255,255,255,0.04); --chart-tick: #4a4845;
 }
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 300; min-height: 100vh; line-height: 1.6; }
@@ -32,7 +40,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
   .metric-label { color: #666 !important; }
   .chart-card, .table-card { border: 1px solid #ddd !important; page-break-inside: avoid; }
   .table-scroll { max-height: none !important; overflow: visible !important; }
-  canvas { filter: invert(1) hue-rotate(180deg); }
+  html.dark-mode canvas { filter: invert(1) hue-rotate(180deg); }
 }
 .print-header { display: none; }
 
@@ -46,7 +54,7 @@ header { padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); display:
 .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .currency-group { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .currency-btn { padding: 5px 14px; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); background: transparent; border: none; cursor: pointer; transition: all 0.2s; letter-spacing: 0.04em; }
-.currency-btn.active { background: var(--accent); color: #0c0e0f; font-weight: 500; }
+.currency-btn.active { background: var(--accent); color: var(--bg); font-weight: 500; }
 .btn-export { padding: 5px 14px; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
 .btn-export:hover { border-color: var(--border2); color: var(--text); }
 
@@ -75,10 +83,13 @@ header { padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); display:
 
 /* SLIDER */
 input[type=range] { -webkit-appearance: none; width: 100%; height: 3px; background: var(--surface2); border-radius: 2px; outline: none; cursor: pointer; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 0 3px rgba(200,240,96,0.12); transition: box-shadow 0.2s; }
-input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(200,240,96,0.2); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 0 3px rgba(74,140,32,0.15); transition: box-shadow 0.2s; }
+html.dark-mode input[type=range]::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(200,240,96,0.12); }
+input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(74,140,32,0.22); }
+html.dark-mode input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(200,240,96,0.2); }
 input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
-input[type=range].amber-slider::-webkit-slider-thumb { background: var(--amber); box-shadow: 0 0 0 3px rgba(240,192,96,0.12); }
+input[type=range].amber-slider::-webkit-slider-thumb { background: var(--amber); box-shadow: 0 0 0 3px rgba(176,128,32,0.15); }
+html.dark-mode input[type=range].amber-slider::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(240,192,96,0.12); }
 
 /* SELECT */
 select { width: 100%; padding: 6px 28px 6px 9px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 0.8rem; outline: none; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%237a7975' d='M5 7L0 2h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 9px center; }
@@ -187,11 +198,15 @@ footer a:hover { color: var(--accent); }
   <div class="logo">
     <div class="logo-dot"></div>
     <div>
-      <span class="logo-text">FinCalc</span>
+      <span class="logo-text">InCalc</span>
       <span class="logo-sub">Compound Interest Suite</span>
     </div>
   </div>
   <div class="header-right">
+    <button class="btn-export no-print" onclick="toggleTheme()" id="theme-toggle" title="Toggle light/dark mode">
+      <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
     <button class="btn-export no-print" onclick="exportPDF()">
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 8.5v2h8v-2M6 1v6M3.5 5l2.5 2.5L8.5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Export PDF
@@ -204,15 +219,15 @@ footer a:hover { color: var(--accent); }
 </header>
 
 <div class="tabs no-print">
-  <button class="tab active" onclick="switchTab('deposit',this)">Deposit &amp; Investment</button>
-  <button class="tab" onclick="switchTab('loan',this)">Loan &amp; EMI</button>
+  <button class="tab active" onclick="switchTab('loan',this)">Loan &amp; EMI</button>
+  <button class="tab" onclick="switchTab('deposit',this)">Deposit &amp; Investment</button>
   <button class="tab" onclick="switchTab('compare',this)">Compare Scenarios</button>
 </div>
 
 <!-- ══ DEPOSIT ══════════════════════════════════════════════════════════════ -->
-<div id="panel-deposit" class="panel active">
+<div id="panel-deposit" class="panel">
   <div class="print-header">
-    <div><div style="font-size:1.3rem;font-weight:600;font-family:Georgia,serif">FinCalc — Deposit &amp; Investment</div><div style="font-size:0.78rem;color:#666;margin-top:3px" id="d-print-sub">—</div></div>
+    <div><div style="font-size:1.3rem;font-weight:600;font-family:Georgia,serif">InCalc — Deposit &amp; Investment</div><div style="font-size:0.78rem;color:#666;margin-top:3px" id="d-print-sub">—</div></div>
     <div style="font-size:0.73rem;color:#666" id="d-print-date">—</div>
   </div>
   <div class="calc-grid">
@@ -223,8 +238,15 @@ footer a:hover { color: var(--accent); }
         <input type="range" id="d-principal" min="10000" max="5000000" step="10000" value="100000" oninput="calcDeposit()">
       </div>
       <div class="field">
-        <div class="field-header"><span class="field-label">Monthly contribution</span><span class="field-value" id="d-contrib-out">—</span></div>
+        <div class="field-header"><span class="field-label" id="d-contrib-label">Monthly contribution</span><span class="field-value" id="d-contrib-out">—</span></div>
         <input type="range" id="d-contrib" min="0" max="200000" step="1000" value="5000" oninput="calcDeposit()">
+      </div>
+      <div class="field">
+        <div class="field-header"><span class="field-label">Contribution frequency</span></div>
+        <select id="d-contrib-freq" onchange="calcDeposit()">
+          <option value="monthly">Monthly</option>
+          <option value="weekly">Weekly</option>
+        </select>
       </div>
       <div class="field">
         <div class="field-header"><span class="field-label">Annual interest rate</span><span class="field-value" id="d-rate-out">—</span></div>
@@ -262,17 +284,23 @@ footer a:hover { color: var(--accent); }
         <div class="chart-header">
           <span class="chart-title">Growth over time</span>
           <div class="legend">
-            <span class="legend-item"><span class="legend-dot" style="background:#c8f060"></span>Balance</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#4a4845"></span>Invested</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span>Balance</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--dim)"></span>Invested</span>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="d-chart"></canvas></div>
       </div>
       <div class="table-card">
-        <div class="table-head-row"><span class="table-head-title">Year-by-year breakdown</span><span class="table-hint">scroll ↓</span></div>
+        <div class="table-head-row">
+          <span class="table-head-title" id="d-table-title">Year-by-year breakdown</span>
+          <select id="d-table-view" onchange="calcDeposit()" style="width:auto;padding:4px 26px 4px 8px;font-size:0.7rem;">
+            <option value="yearly">Yearly</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </div>
         <div class="table-scroll">
           <table>
-            <thead><tr><th style="width:13%">Year</th><th>Opening</th><th>Contributions</th><th>Interest</th><th>Closing</th></tr></thead>
+            <thead><tr id="d-thead"><th style="width:13%">Year</th><th>Opening</th><th>Contributions</th><th>Interest</th><th>Closing</th></tr></thead>
             <tbody id="d-table"></tbody>
           </table>
         </div>
@@ -282,9 +310,9 @@ footer a:hover { color: var(--accent); }
 </div>
 
 <!-- ══ LOAN ═════════════════════════════════════════════════════════════════ -->
-<div id="panel-loan" class="panel">
+<div id="panel-loan" class="panel active">
   <div class="print-header">
-    <div><div style="font-size:1.3rem;font-weight:600;font-family:Georgia,serif">FinCalc — Loan &amp; EMI Report</div><div style="font-size:0.78rem;color:#666;margin-top:3px" id="l-print-sub">—</div></div>
+    <div><div style="font-size:1.3rem;font-weight:600;font-family:Georgia,serif">InCalc — Loan &amp; EMI Report</div><div style="font-size:0.78rem;color:#666;margin-top:3px" id="l-print-sub">—</div></div>
     <div style="font-size:0.73rem;color:#666" id="l-print-date">—</div>
   </div>
   <div class="calc-grid">
@@ -309,6 +337,38 @@ footer a:hover { color: var(--accent); }
         <input type="range" class="amber-slider" id="l-prepay" min="0" max="100000" step="500" value="0" oninput="calcLoan()">
       </div>
       <div class="divider"></div>
+      <div class="controls-title" style="color:var(--accent2)">Effective Rate Analysis</div>
+      <div class="field">
+        <div class="field-header"><span class="field-label">Advance EMI deposits</span><span class="field-value" id="l-adv-emi-out" style="color:var(--accent2)">0</span></div>
+        <select id="l-adv-emi" onchange="calcLoan()">
+          <option value="0">None</option>
+          <option value="1">1 EMI</option>
+          <option value="2">2 EMIs</option>
+          <option value="3">3 EMIs</option>
+          <option value="4">4 EMIs</option>
+          <option value="5">5 EMIs</option>
+          <option value="6">6 EMIs</option>
+          <option value="7">7 EMIs</option>
+          <option value="8">8 EMIs</option>
+          <option value="9">9 EMIs</option>
+          <option value="10">10 EMIs</option>
+          <option value="11">11 EMIs</option>
+          <option value="12">12 EMIs</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="field-header"><span class="field-label">Cash security amount</span><span class="field-value" id="l-cs-amt-out" style="color:var(--accent2)">—</span></div>
+        <input type="range" id="l-cs-amt" min="0" max="5000000" step="10000" value="0" oninput="calcLoan()">
+      </div>
+      <div class="field">
+        <div class="field-header"><span class="field-label">Cash security rate</span><span class="field-value" id="l-cs-rate-out" style="color:var(--accent2)">—</span></div>
+        <input type="range" id="l-cs-rate" min="0" max="15" step="0.25" value="0" oninput="calcLoan()">
+      </div>
+      <div class="field">
+        <div class="field-header"><span class="field-label">Cash security tenor</span><span class="field-value" id="l-cs-tenor-out" style="color:var(--accent2)">—</span></div>
+        <span style="font-size:0.7rem;color:var(--dim);font-family:var(--mono)">Auto-matched to loan tenure</span>
+      </div>
+      <div class="divider"></div>
       <div class="breakdown-wrap">
         <div class="breakdown-title">Principal vs Interest cost</div>
         <div class="breakdown-bar"><div class="bar-a" id="l-bar-p" style="flex:50"></div><div class="bar-b" id="l-bar-i" style="flex:50"></div></div>
@@ -323,6 +383,12 @@ footer a:hover { color: var(--accent); }
         <div class="metric"><span class="metric-label">Total repayment</span><span class="metric-value" id="l-total-paid">—</span><span class="metric-sub">Principal + interest</span></div>
         <div class="metric"><span class="metric-label">Interest ratio</span><span class="metric-value" id="l-ratio">—</span><span class="metric-sub">Interest as % of loan</span></div>
       </div>
+      <div class="metrics" id="l-eff-metrics" style="display:none">
+        <div class="metric"><span class="metric-label">Effective rate</span><span class="metric-value warn" id="l-eff-rate">—</span><span class="metric-sub">True cost of borrowing</span></div>
+        <div class="metric"><span class="metric-label">Net disbursement</span><span class="metric-value teal" id="l-net-disb">—</span><span class="metric-sub">Actual amount received</span></div>
+        <div class="metric"><span class="metric-label">Rate markup</span><span class="metric-value warn" id="l-rate-markup">—</span><span class="metric-sub">Effective minus nominal</span></div>
+        <div class="metric"><span class="metric-label">CS interest earned</span><span class="metric-value accent" id="l-cs-interest">—</span><span class="metric-sub">On cash security deposit</span></div>
+      </div>
       <div class="savings-badge" id="l-savings-badge">
         <div class="savings-badge-title">Prepayment savings</div>
         <div class="savings-grid">
@@ -335,10 +401,10 @@ footer a:hover { color: var(--accent); }
         <div class="chart-header">
           <span class="chart-title">Payoff curve</span>
           <div class="legend">
-            <span class="legend-item"><span class="legend-dot" style="background:#60d0c8"></span>Principal</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#f07060"></span>Interest</span>
-            <span class="legend-item"><span class="legend-dot" style="background:#4a4845"></span>Balance</span>
-            <span class="legend-item" id="l-prepay-legend" style="display:none"><span class="legend-dot" style="background:#f0c060;border-radius:50%"></span>With prepay</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--accent2)"></span>Principal</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--warn)"></span>Interest</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--dim)"></span>Balance</span>
+            <span class="legend-item" id="l-prepay-legend" style="display:none"><span class="legend-dot" style="background:var(--amber);border-radius:50%"></span>With prepay</span>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="l-chart"></canvas></div>
@@ -361,7 +427,7 @@ footer a:hover { color: var(--accent); }
   <div class="compare-grid">
     <div class="compare-card">
       <div class="compare-card-header">
-        <div class="scenario-dot" style="background:#c8f060"></div>
+        <div class="scenario-dot" style="background:var(--accent)"></div>
         <span class="compare-card-label">Scenario A</span>
         <select id="ca-type" onchange="calcCompare()" style="margin-left:auto;width:auto;padding:4px 26px 4px 8px;font-size:0.7rem;">
           <option value="deposit">Deposit</option>
@@ -370,22 +436,22 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="compare-controls">
         <div class="field">
-          <div class="field-header"><span class="field-label" id="ca-amt-label">Deposit amount</span><span class="field-value" id="ca-amt-out" style="color:#c8f060">—</span></div>
+          <div class="field-header"><span class="field-label" id="ca-amt-label">Deposit amount</span><span class="field-value" id="ca-amt-out" style="color:var(--accent)">—</span></div>
           <input type="range" id="ca-amt" min="50000" max="10000000" step="50000" value="500000" oninput="calcCompare()">
         </div>
         <div class="field">
-          <div class="field-header"><span class="field-label">Annual rate</span><span class="field-value" id="ca-rate-out" style="color:#c8f060">—</span></div>
+          <div class="field-header"><span class="field-label">Annual rate</span><span class="field-value" id="ca-rate-out" style="color:var(--accent)">—</span></div>
           <input type="range" id="ca-rate" min="1" max="25" step="0.25" value="8" oninput="calcCompare()">
         </div>
         <div class="field">
-          <div class="field-header"><span class="field-label">Years</span><span class="field-value" id="ca-years-out" style="color:#c8f060">—</span></div>
+          <div class="field-header"><span class="field-label">Years</span><span class="field-value" id="ca-years-out" style="color:var(--accent)">—</span></div>
           <input type="range" id="ca-years" min="1" max="30" step="1" value="10" oninput="calcCompare()">
         </div>
       </div>
     </div>
     <div class="compare-card">
       <div class="compare-card-header">
-        <div class="scenario-dot" style="background:#60d0c8"></div>
+        <div class="scenario-dot" style="background:var(--accent2)"></div>
         <span class="compare-card-label">Scenario B</span>
         <select id="cb-type" onchange="calcCompare()" style="margin-left:auto;width:auto;padding:4px 26px 4px 8px;font-size:0.7rem;">
           <option value="deposit">Deposit</option>
@@ -394,15 +460,15 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="compare-controls">
         <div class="field">
-          <div class="field-header"><span class="field-label" id="cb-amt-label">Deposit amount</span><span class="field-value" id="cb-amt-out" style="color:#60d0c8">—</span></div>
+          <div class="field-header"><span class="field-label" id="cb-amt-label">Deposit amount</span><span class="field-value" id="cb-amt-out" style="color:var(--accent2)">—</span></div>
           <input type="range" id="cb-amt" min="50000" max="10000000" step="50000" value="500000" oninput="calcCompare()">
         </div>
         <div class="field">
-          <div class="field-header"><span class="field-label">Annual rate</span><span class="field-value" id="cb-rate-out" style="color:#60d0c8">—</span></div>
+          <div class="field-header"><span class="field-label">Annual rate</span><span class="field-value" id="cb-rate-out" style="color:var(--accent2)">—</span></div>
           <input type="range" id="cb-rate" min="1" max="25" step="0.25" value="12" oninput="calcCompare()">
         </div>
         <div class="field">
-          <div class="field-header"><span class="field-label">Years</span><span class="field-value" id="cb-years-out" style="color:#60d0c8">—</span></div>
+          <div class="field-header"><span class="field-label">Years</span><span class="field-value" id="cb-years-out" style="color:var(--accent2)">—</span></div>
           <input type="range" id="cb-years" min="1" max="30" step="1" value="10" oninput="calcCompare()">
         </div>
       </div>
@@ -411,11 +477,11 @@ footer a:hover { color: var(--accent); }
 
   <div class="compare-results-grid">
     <div class="compare-result-card">
-      <div class="compare-result-header"><div class="scenario-dot" style="background:#c8f060"></div>Scenario A — Result</div>
+      <div class="compare-result-header"><div class="scenario-dot" style="background:var(--accent)"></div>Scenario A — Result</div>
       <div class="compare-metrics" id="cmetrics-a"></div>
     </div>
     <div class="compare-result-card">
-      <div class="compare-result-header"><div class="scenario-dot" style="background:#60d0c8"></div>Scenario B — Result</div>
+      <div class="compare-result-header"><div class="scenario-dot" style="background:var(--accent2)"></div>Scenario B — Result</div>
       <div class="compare-metrics" id="cmetrics-b"></div>
     </div>
   </div>
@@ -426,20 +492,48 @@ footer a:hover { color: var(--accent); }
       <span class="winner-badge winner-a" id="c-winner">—</span>
     </div>
     <div class="legend" style="margin-bottom:0.9rem;">
-      <span class="legend-item"><span class="legend-dot" style="background:#c8f060"></span>Scenario A</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#60d0c8"></span>Scenario B</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span>Scenario A</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--accent2)"></span>Scenario B</span>
     </div>
     <div class="chart-wrap" style="height:220px;"><canvas id="c-chart"></canvas></div>
   </div>
 </div>
 
 <footer>
-  FinCalc &mdash; <a href="https://github.com/clauding-lab" target="_blank">clauding-lab</a> &mdash; Calculations are illustrative. Consult a qualified financial advisor before making financial decisions.
+  InCalc &mdash; <a href="https://github.com/clauding-lab" target="_blank">clauding-lab</a> &mdash; Calculations are illustrative. Consult a qualified financial advisor before making financial decisions.
 </footer>
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────────────
 let currency='BDT', dChart=null, lChart=null, cChart=null;
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+function getChartColors(){
+  const cs=getComputedStyle(document.documentElement);
+  return{grid:cs.getPropertyValue('--chart-grid').trim(),tick:cs.getPropertyValue('--chart-tick').trim(),
+    accent:cs.getPropertyValue('--accent').trim(),accent2:cs.getPropertyValue('--accent2').trim(),
+    warn:cs.getPropertyValue('--warn').trim(),amber:cs.getPropertyValue('--amber').trim(),
+    dim:cs.getPropertyValue('--dim').trim(),text:cs.getPropertyValue('--text').trim()};
+}
+function alpha(hex,a){
+  if(hex.startsWith('rgba')||hex.startsWith('rgb')) return hex.replace(/[\d.]+\)$/,a+')');
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function toggleTheme(){
+  const isDark=document.documentElement.classList.toggle('dark-mode');
+  document.getElementById('theme-icon-sun').style.display=isDark?'inline':'none';
+  document.getElementById('theme-icon-moon').style.display=isDark?'none':'inline';
+  localStorage.setItem('incalc-theme',isDark?'dark':'light');
+  rebuildCharts();
+}
+function rebuildCharts(){
+  if(dChart){dChart.destroy();dChart=null;}
+  if(lChart){lChart.destroy();lChart=null;}
+  if(cChart){cChart.destroy();cChart=null;}
+  calcLoan(); calcDeposit();
+  if(document.getElementById('panel-compare').classList.contains('active')) calcCompare();
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function sym(){ return currency==='BDT'?'৳':'$'; }
@@ -497,31 +591,59 @@ function exportPDF(){
 // ── DEPOSIT ────────────────────────────────────────────────────────────────────
 function calcDeposit(){
   const P=+document.getElementById('d-principal').value;
-  const m=+document.getElementById('d-contrib').value;
+  const contribAmt=+document.getElementById('d-contrib').value;
   const rate=+document.getElementById('d-rate').value;
   const years=+document.getElementById('d-years').value;
   const n=+document.getElementById('d-freq').value;
+  const contribFreq=document.getElementById('d-contrib-freq').value;
+  const tableView=document.getElementById('d-table-view').value;
 
+  const freqLabel=contribFreq==='weekly'?'Weekly contribution':'Monthly contribution';
+  document.getElementById('d-contrib-label').textContent=freqLabel;
   document.getElementById('d-principal-out').textContent=fmt(P);
-  document.getElementById('d-contrib-out').textContent=fmt(m);
+  document.getElementById('d-contrib-out').textContent=fmt(contribAmt);
   document.getElementById('d-rate-out').textContent=rate.toFixed(2)+'%';
   document.getElementById('d-years-out').textContent=years+(years>1?' years':' year');
 
   const labels=[],balances=[],invested=[],rows=[];
+  const weeklyRows=[];
   let balance=P, totalContrib=0;
 
-  for(let y=1;y<=years;y++){
-    const openBal=balance;
-    let yi=0, yc=0;
-    for(let mo=0;mo<12;mo++){
-      balance+=m; yc+=m; totalContrib+=m;
-      const doC=(n===12||(n===4&&mo%3===2)||(n===2&&mo%6===5)||(n===1&&mo===11));
-      if(doC){ const rp=rate/100/n; const int=balance*rp; yi+=int; balance+=int; }
+  if(contribFreq==='weekly'){
+    const rPer=rate/100/n;
+    const compEveryW=52/n;
+    let wSinceComp=0;
+    for(let y=1;y<=years;y++){
+      const openBal=balance;
+      let yi=0,yc=0;
+      for(let w=0;w<52;w++){
+        balance+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
+        wSinceComp++;
+        if(wSinceComp>=compEveryW){
+          wSinceComp-=compEveryW;
+          const int=balance*rPer; yi+=int; balance+=int;
+        }
+        weeklyRows.push({week:(y-1)*52+w+1,year:y,weekInYear:w+1,contrib:contribAmt,balance:balance});
+      }
+      labels.push('Yr '+y);
+      balances.push(Math.round(balance));
+      invested.push(Math.round(P+totalContrib));
+      rows.push({year:y,open:openBal,contrib:yc,interest:yi,close:balance});
     }
-    labels.push('Yr '+y);
-    balances.push(Math.round(balance));
-    invested.push(Math.round(P+totalContrib));
-    rows.push({year:y,open:openBal,contrib:yc,interest:yi,close:balance});
+  } else {
+    for(let y=1;y<=years;y++){
+      const openBal=balance;
+      let yi=0, yc=0;
+      for(let mo=0;mo<12;mo++){
+        balance+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
+        const doC=(n===12||(n===4&&mo%3===2)||(n===2&&mo%6===5)||(n===1&&mo===11));
+        if(doC){ const rp=rate/100/n; const int=balance*rp; yi+=int; balance+=int; }
+      }
+      labels.push('Yr '+y);
+      balances.push(Math.round(balance));
+      invested.push(Math.round(P+totalContrib));
+      rows.push({year:y,open:openBal,contrib:yc,interest:yi,close:balance});
+    }
   }
 
   const finalBal=balances[balances.length-1];
@@ -542,16 +664,31 @@ function calcDeposit(){
   document.getElementById('d-insight').textContent=
     `At ${rate}%, money doubles every ~${(72/rate).toFixed(1)} years. Your ${fmt(totalInvested)} grows to ${fmt(finalBal)} — ${iPct}% is pure interest.`;
 
+  const tc=getChartColors();
   if(dChart){ dChart.data.labels=labels; dChart.data.datasets[0].data=balances; dChart.data.datasets[1].data=invested; dChart.update('none'); }
   else dChart=new Chart(document.getElementById('d-chart'),{type:'line',data:{labels,datasets:[
-    {data:balances,borderColor:'#c8f060',backgroundColor:'rgba(200,240,96,0.07)',fill:true,tension:0.35,pointRadius:0,borderWidth:2},
-    {data:invested,borderColor:'#4a4845',backgroundColor:'rgba(74,72,69,0.04)',fill:true,tension:0,pointRadius:0,borderWidth:1.5,borderDash:[4,3]}
+    {data:balances,borderColor:tc.accent,backgroundColor:alpha(tc.accent,0.07),fill:true,tension:0.35,pointRadius:0,borderWidth:2},
+    {data:invested,borderColor:tc.dim,backgroundColor:alpha(tc.dim,0.04),fill:true,tension:0,pointRadius:0,borderWidth:1.5,borderDash:[4,3]}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)}}},scales:{
-    x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a4845',font:{size:10,family:'DM Mono'},maxTicksLimit:10}},
-    y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a4845',font:{size:10,family:'DM Mono'},callback:fmtS}}
+    x:{grid:{color:tc.grid},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},maxTicksLimit:10}},
+    y:{grid:{color:tc.grid},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},callback:fmtS}}
   }}});
 
-  document.getElementById('d-table').innerHTML=rows.map(r=>`<tr><td>${r.year}</td><td>${fmt(r.open)}</td><td class="teal">${fmt(r.contrib)}</td><td class="pos">${fmt(r.interest)}</td><td>${fmt(r.close)}</td></tr>`).join('');
+  const thead=document.getElementById('d-thead');
+  if(tableView==='weekly'){
+    document.getElementById('d-table-title').textContent='Week-by-week breakdown';
+    thead.innerHTML='<th style="width:10%">Week</th><th>Year</th><th>Contribution</th><th colspan="1"></th><th>Balance</th>';
+    const wRows=contribFreq==='weekly'?weeklyRows:[];
+    if(wRows.length===0){
+      document.getElementById('d-table').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">Select weekly contribution frequency to see weekly breakdown</td></tr>';
+    } else {
+      document.getElementById('d-table').innerHTML=wRows.map(r=>`<tr><td>${r.week}</td><td>Yr ${r.year}</td><td class="teal">${fmt(r.contrib)}</td><td></td><td>${fmt(r.balance)}</td></tr>`).join('');
+    }
+  } else {
+    document.getElementById('d-table-title').textContent='Year-by-year breakdown';
+    thead.innerHTML='<th style="width:13%">Year</th><th>Opening</th><th>Contributions</th><th>Interest</th><th>Closing</th>';
+    document.getElementById('d-table').innerHTML=rows.map(r=>`<tr><td>${r.year}</td><td>${fmt(r.open)}</td><td class="teal">${fmt(r.contrib)}</td><td class="pos">${fmt(r.interest)}</td><td>${fmt(r.close)}</td></tr>`).join('');
+  }
 }
 
 // ── LOAN + PREPAYMENT ──────────────────────────────────────────────────────────
@@ -571,6 +708,37 @@ function buildSchedule(P,rate,years,extra){
     rows.push({year:y,open,principal:yP,interest:yI,close:balance});
   }
   return{emi,rows,totalPaid:P+totInt,totalInterest:totInt,totalMonths:totMo};
+}
+
+function calcEffectiveRate(P,nomRate,years,emi,advEMI,csAmt,csAnnualRate){
+  const N=years*12;
+  const csMonthlyRate=csAnnualRate/100/12;
+  const netDisb=P-(advEMI*emi)-csAmt;
+  if(netDisb<=0) return null;
+  const csReturn=csAmt>0?csAmt*Math.pow(1+csMonthlyRate,N):0;
+  const csInterest=csReturn-csAmt;
+  const payMonths=N-advEMI;
+  const cf=new Array(N+1).fill(0);
+  cf[0]=netDisb;
+  for(let t=1;t<=payMonths;t++) cf[t]=-emi;
+  cf[N]+=csReturn;
+  let r=nomRate/100/12;
+  for(let i=0;i<200;i++){
+    let npv=0,dnpv=0;
+    for(let t=0;t<=N;t++){
+      if(cf[t]===0&&t>0) continue;
+      const d=Math.pow(1+r,t);
+      npv+=cf[t]/d;
+      if(t>0) dnpv+=-t*cf[t]/(d*(1+r));
+    }
+    if(Math.abs(dnpv)<1e-15) break;
+    const step=npv/dnpv;
+    r-=step;
+    if(r<=-1) r=0.0001;
+    if(Math.abs(step)<1e-10) break;
+  }
+  const effAnnual=(Math.pow(1+r,12)-1)*100;
+  return{effectiveRate:effAnnual,netDisbursement:netDisb,csInterest,rateMarkup:effAnnual-nomRate};
 }
 
 function calcLoan(){
@@ -632,21 +800,46 @@ function calcLoan(){
     lChart.update('none');
   } else {
     while(wpBals.length<lbls.length) wpBals.push(0);
+    const tc=getChartColors();
     lChart=new Chart(document.getElementById('l-chart'),{type:'bar',data:{labels:lbls,datasets:[
-      {data:prins,backgroundColor:'#60d0c8',stack:'s',order:2},
-      {data:ints,backgroundColor:'#f07060',stack:'s',order:2},
-      {data:bals,type:'line',borderColor:'#4a4845',backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:2,order:1},
-      {data:wp?wpBals:[],type:'line',borderColor:'#f0c060',backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:2,borderDash:[5,3],order:1,hidden:!wp}
+      {data:prins,backgroundColor:tc.accent2,stack:'s',order:2},
+      {data:ints,backgroundColor:tc.warn,stack:'s',order:2},
+      {data:bals,type:'line',borderColor:tc.dim,backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:2,order:1},
+      {data:wp?wpBals:[],type:'line',borderColor:tc.amber,backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:2,borderDash:[5,3],order:1,hidden:!wp}
     ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)}}},scales:{
-      x:{stacked:true,grid:{display:false},ticks:{color:'#4a4845',font:{size:10,family:'DM Mono'},maxTicksLimit:10}},
-      y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a4845',font:{size:10,family:'DM Mono'},callback:fmtS}}
+      x:{stacked:true,grid:{display:false},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},maxTicksLimit:10}},
+      y:{stacked:true,grid:{color:tc.grid},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},callback:fmtS}}
     }}});
   }
 
   document.getElementById('l-table').innerHTML=rows.map(r=>{
     const wr=wp?wp.rows.find(x=>x.year===r.year):null;
-    return `<tr><td>${r.year}</td><td>${fmt(r.open)}</td><td class="teal">${fmt(r.principal)}${wr&&wr.principal>r.principal?'<br><span style="color:#f0c060;font-size:0.65rem">+'+fmt(wr.principal-r.principal)+'</span>':''}</td><td class="neg">${fmt(r.interest)}</td><td>${fmt(r.close)}</td></tr>`;
+    return `<tr><td>${r.year}</td><td>${fmt(r.open)}</td><td class="teal">${fmt(r.principal)}${wr&&wr.principal>r.principal?'<br><span style="color:var(--amber);font-size:0.65rem">+'+fmt(wr.principal-r.principal)+'</span>':''}</td><td class="neg">${fmt(r.interest)}</td><td>${fmt(r.close)}</td></tr>`;
   }).join('');
+
+  // Effective rate calculation
+  const advEMI=+document.getElementById('l-adv-emi').value;
+  const csAmt=+document.getElementById('l-cs-amt').value;
+  const csRate=+document.getElementById('l-cs-rate').value;
+  document.getElementById('l-adv-emi-out').textContent=advEMI>0?advEMI+' EMI'+(advEMI>1?'s':''):'0';
+  document.getElementById('l-cs-amt-out').textContent=fmt(csAmt);
+  document.getElementById('l-cs-rate-out').textContent=csRate.toFixed(2)+'%';
+  document.getElementById('l-cs-tenor-out').textContent=years+(years>1?' years':' year');
+  const csSlider=document.getElementById('l-cs-amt');
+  csSlider.max=Math.round(P*0.5);
+  if(+csSlider.value>+csSlider.max) csSlider.value=csSlider.max;
+
+  const effMetrics=document.getElementById('l-eff-metrics');
+  if(advEMI>0||csAmt>0){
+    const eff=calcEffectiveRate(P,rate,years,base.emi,advEMI,csAmt,csRate);
+    if(eff&&eff.effectiveRate>0){
+      effMetrics.style.display='';
+      document.getElementById('l-eff-rate').textContent=eff.effectiveRate.toFixed(3)+'%';
+      document.getElementById('l-net-disb').textContent=fmt(eff.netDisbursement);
+      document.getElementById('l-rate-markup').textContent='+'+eff.rateMarkup.toFixed(3)+'%';
+      document.getElementById('l-cs-interest').textContent=fmt(eff.csInterest);
+    } else { effMetrics.style.display='none'; }
+  } else { effMetrics.style.display='none'; }
 }
 
 // ── COMPARE ────────────────────────────────────────────────────────────────────
@@ -715,18 +908,26 @@ function calcCompare(){
   const pB=[...B.vals,...Array(maxY-B.vals.length).fill(null)];
 
   if(cChart){ cChart.data.labels=allL; cChart.data.datasets[0].data=pA; cChart.data.datasets[1].data=pB; cChart.update('none'); }
-  else cChart=new Chart(document.getElementById('c-chart'),{type:'line',data:{labels:allL,datasets:[
-    {data:pA,borderColor:'#c8f060',backgroundColor:'rgba(200,240,96,0.06)',fill:true,tension:0.35,pointRadius:0,borderWidth:2,spanGaps:false},
-    {data:pB,borderColor:'#60d0c8',backgroundColor:'rgba(96,208,200,0.06)',fill:true,tension:0.35,pointRadius:0,borderWidth:2,spanGaps:false}
+  else{const tc=getChartColors();cChart=new Chart(document.getElementById('c-chart'),{type:'line',data:{labels:allL,datasets:[
+    {data:pA,borderColor:tc.accent,backgroundColor:alpha(tc.accent,0.06),fill:true,tension:0.35,pointRadius:0,borderWidth:2,spanGaps:false},
+    {data:pB,borderColor:tc.accent2,backgroundColor:alpha(tc.accent2,0.06),fill:true,tension:0.35,pointRadius:0,borderWidth:2,spanGaps:false}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)}}},scales:{
-    x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a4845',font:{size:10,family:'DM Mono'},maxTicksLimit:10}},
-    y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a4845',font:{size:10,family:'DM Mono'},callback:fmtS}}
-  }}});
+    x:{grid:{color:tc.grid},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},maxTicksLimit:10}},
+    y:{grid:{color:tc.grid},ticks:{color:tc.tick,font:{size:10,family:'DM Mono'},callback:fmtS}}
+  }}});}
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
-calcDeposit();
+(function(){
+  const saved=localStorage.getItem('incalc-theme');
+  if(saved==='dark'){
+    document.documentElement.classList.add('dark-mode');
+    document.getElementById('theme-icon-sun').style.display='inline';
+    document.getElementById('theme-icon-moon').style.display='none';
+  }
+})();
 calcLoan();
+calcDeposit();
 </script>
 </body>
 </html>
