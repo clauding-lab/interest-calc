@@ -56,6 +56,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
   .settle-input { border: none !important; background: transparent !important; padding: 2px 4px !important; }
   .settle-card { border: 1px solid #ddd !important; page-break-inside: avoid; }
   .settle-file-badge { display: none !important; }
+  .settle-print-data { display: block !important; }
+  .settle-print-data table { border-collapse: collapse; width: 100%; font-size: 0.75rem; }
+  .settle-print-data th, .settle-print-data td { border: 1px solid #ccc; padding: 4px 8px; }
+  .settle-print-data th { background: #f0f0f0; font-weight: 600; text-align: left; }
+  .settle-print-data td { text-align: right; }
+  .settle-print-data td:first-child { text-align: left; }
+  .settle-print-data h3 { font-size: 0.85rem; margin: 1.25rem 0 0.5rem; font-family: var(--mono); letter-spacing: 0.05em; }
+  .settle-print-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.8rem; }
+  .settle-print-info span { font-weight: 600; }
 }
 .print-header { display: none; }
 
@@ -816,6 +825,9 @@ html.dark-mode .green-sl { color: #92d050; }
       </div>
     </div>
 
+    <!-- Print-only: input data below results -->
+    <div class="settle-print-data" id="s-print-data" style="display:none"></div>
+
     <div class="settle-actions" style="margin-top:1.5rem">
       <button class="settle-btn" onclick="settleEditInputs()">Edit Inputs</button>
     </div>
@@ -903,7 +915,7 @@ function exportPDF(){
   const id=active?active.id:'';
 
   if(id==='panel-settlement'){
-    // For settlement, make sure result or input screen is visible for print
+    buildSettlePrintData();
     window.print();
     return;
   }
@@ -1892,6 +1904,52 @@ function calcSettlement(){
   document.getElementById('s-sum-waiver').textContent=fmt(totalWaiver);
 
   settleShowScreen('result');
+}
+
+function buildSettlePrintData(){
+  const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const client=document.getElementById('s-client').value||'—';
+  const account=document.getElementById('s-account').value||'—';
+  const loanAmt=parseFloat(document.getElementById('s-loan-amt').value)||0;
+  const disbDate=document.getElementById('s-disb-date').value||'—';
+  const settleDate=document.getElementById('s-settle-date').value||'—';
+
+  let html=`<h3 style="margin-top:1.5rem;padding-top:1rem;border-top:2px solid #111">INPUT DATA</h3>`;
+  html+=`<p style="font-size:0.65rem;color:#888;margin-bottom:0.75rem">Generated ${now}</p>`;
+
+  // Client info
+  html+=`<div class="settle-print-info">
+    <div>Client: <span>${escH(client)}</span></div>
+    <div>Account: <span>${escH(account)}</span></div>
+    <div>Loan Amount: <span>${fmt(loanAmt)}</span></div>
+    <div>Disbursement: <span>${disbDate}</span></div>
+    <div>Settlement Date: <span>${settleDate}</span></div>
+  </div>`;
+
+  // Receivables table
+  html+=`<h3>RECEIVABLES &amp; ADJUSTMENTS</h3>`;
+  html+=`<table><thead><tr><th>Particulars</th><th style="text-align:right">Receivable</th><th style="text-align:right">Adjustment</th><th style="text-align:right">Waiver</th></tr></thead><tbody>`;
+  let tR=0,tA=0,tW=0;
+  settleRecv.forEach(r=>{
+    const adj=r.receivable-r.waiver;
+    tR+=r.receivable; tA+=adj; tW+=r.waiver;
+    html+=`<tr><td>${escH(r.name)}</td><td>${r.receivable.toFixed(2)}</td><td>${adj.toFixed(2)}</td><td>${r.waiver.toFixed(2)}</td></tr>`;
+  });
+  html+=`<tr style="font-weight:600;background:#f0f0f0"><td>Total</td><td>${tR.toFixed(2)}</td><td>${tA.toFixed(2)}</td><td>${tW.toFixed(2)}</td></tr>`;
+  html+=`</tbody></table>`;
+
+  // Payment schedule
+  html+=`<h3>PAYMENT SCHEDULE</h3>`;
+  html+=`<table><thead><tr><th style="width:10%">SL</th><th>Date</th><th style="text-align:right">Amount</th></tr></thead><tbody>`;
+  let payTotal=0;
+  settlePay.forEach((p,i)=>{
+    payTotal+=p.amount;
+    html+=`<tr><td>${i+1}</td><td>${p.date}</td><td>${p.amount.toFixed(2)}</td></tr>`;
+  });
+  html+=`<tr style="font-weight:600;background:#f0f0f0"><td colspan="2">Total</td><td>${payTotal.toFixed(2)}</td></tr>`;
+  html+=`</tbody></table>`;
+
+  document.getElementById('s-print-data').innerHTML=html;
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
