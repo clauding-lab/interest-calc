@@ -714,6 +714,13 @@ html.dark-mode .green-sl { color: #92d050; }
 <!-- ══ SETTLEMENT IRR ═══════════════════════════════════════════════════════ -->
 <div id="panel-settlement" class="panel">
 
+  <!-- RESET BAR (hidden on upload screen) -->
+  <div id="settle-reset-bar" style="display:none;justify-content:flex-end;margin-bottom:1rem">
+    <button class="settle-btn" onclick="settleReset()" style="color:var(--warn);border-color:var(--warn);font-size:0.7rem;padding:5px 14px;display:flex;align-items:center;gap:5px">
+      <span style="font-size:0.85rem">&#8634;</span> Reset
+    </button>
+  </div>
+
   <!-- SCREEN 1: UPLOAD -->
   <div id="settle-upload-screen" class="settle-screen">
     <div class="settle-upload-zone" id="settle-drop-zone" onclick="document.getElementById('settle-file-input').click()">
@@ -1565,6 +1572,10 @@ function settleShowScreen(name){
   ['settle-upload-screen','settle-input-screen','settle-result-screen'].forEach(id=>{
     document.getElementById(id).classList.toggle('hidden',id!=='settle-'+name+'-screen');
   });
+  // Show reset bar on input & result screens, hide on upload
+  const bar=document.getElementById('settle-reset-bar');
+  if(name==='upload'){ bar.classList.add('hidden'); bar.style.display='none'; }
+  else { bar.classList.remove('hidden'); bar.style.display='flex'; }
 }
 
 function settleStartBlank(){
@@ -1583,6 +1594,22 @@ function settleStartBlank(){
 }
 
 function settleBackToUpload(){
+  settleShowScreen('upload');
+}
+
+function settleReset(){
+  settleRecv=defaultReceivables.map(name=>({name,receivable:0,waiver:0}));
+  settlePay=[];
+  document.getElementById('s-client').value='';
+  document.getElementById('s-account').value='';
+  document.getElementById('s-loan-amt').value='';
+  document.getElementById('s-disb-date').value='';
+  document.getElementById('s-settle-date').value='';
+  document.getElementById('settle-file-badge-wrap').innerHTML='';
+  document.getElementById('settle-file-input').value='';
+  renderSettleRecv();
+  renderSettlePay();
+  settleUpdateTotals();
   settleShowScreen('upload');
 }
 
