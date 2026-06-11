@@ -3,35 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.sheetjs.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>InCalc — Compound Interest Suite</title>
 <meta name="description" content="Compound interest calculator with loan EMI, deposit & investment analysis">
 <meta name="theme-color" content="#2060b0">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="InCalc">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --bg: #f5f5f0; --surface: #ffffff; --surface2: #eceae5;
   --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.15);
-  --text: #1a1a18; --muted: #6b6965; --dim: #9a9590;
-  --accent: #2060b0; --accent2: #1a6a9a; --warn: #c04030; --amber: #c07820;
-  --chart-grid: rgba(0,0,0,0.06); --chart-tick: #9a9590;
+  --text: #1a1a18; --muted: #6b6965; --dim: #6b665f;
+  --accent: #2060b0; --accent2: #1a6a9a; --warn: #c04030; --amber: #955a00;
+  --chart-grid: rgba(0,0,0,0.06); --chart-tick: #6b665f;
   --mono: 'DM Mono', monospace; --serif: 'Fraunces', serif; --sans: 'DM Sans', sans-serif;
   --radius: 10px; --radius-lg: 16px;
 }
 html.dark-mode {
   --bg: #1e2024; --surface: #282a2e; --surface2: #32353a;
   --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
-  --text: #edecea; --muted: #7a7975; --dim: #4a4845;
+  --text: #edecea; --muted: #b2afa8; --dim: #a5a098;
   --accent: #60a0f0; --accent2: #50b8e0; --warn: #f07060; --amber: #f0a040;
-  --chart-grid: rgba(255,255,255,0.04); --chart-tick: #4a4845;
+  --chart-grid: rgba(255,255,255,0.04); --chart-tick: #a5a098;
 }
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 300; min-height: 100vh; line-height: 1.6; }
@@ -112,12 +115,15 @@ html.dark-mode input[type=range]::-webkit-slider-thumb { box-shadow: 0 0 0 3px r
 input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(32,96,176,0.22); }
 html.dark-mode input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(96,160,240,0.2); }
 input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; border: none; }
+input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--accent); }
+input[type=range]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--accent); }
 input[type=range].amber-slider::-webkit-slider-thumb { background: var(--amber); box-shadow: 0 0 0 3px rgba(192,120,32,0.15); }
 html.dark-mode input[type=range].amber-slider::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(240,160,64,0.12); }
 
 /* SELECT */
 select { width: 100%; padding: 6px 28px 6px 9px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 0.8rem; outline: none; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%237a7975' d='M5 7L0 2h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 9px center; }
-select:focus { border-color: rgba(200,240,96,0.3); }
+select:focus { border-color: var(--accent); }
+select:focus-visible, input:focus-visible, button.tab:focus-visible, .currency-btn:focus-visible, .preset-btn:focus-visible, .tenure-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* METRICS */
 .metrics { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--border); border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--border); margin-bottom: 1.25rem; }
@@ -357,11 +363,34 @@ html.dark-mode .settle-input.blue-input { background: rgba(0,112,192,0.08); bord
 .settle-summary-row.s-total { background: var(--surface2); font-weight: 500; }
 .settle-summary-row.s-total .s-label { color: var(--text); }
 .settle-file-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(32,96,176,0.06); border: 1px solid rgba(32,96,176,0.15); border-radius: 20px; font-family: var(--mono); font-size: 0.65rem; color: var(--accent); margin-bottom: 1rem; }
-.green-sl { color: #6aab20; font-weight: 500; }
+.green-sl { color: #4f8016; font-weight: 500; }
 html.dark-mode .green-sl { color: #92d050; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.update-toast { position: fixed; left: 50%; bottom: 1.25rem; transform: translateX(-50%); background: var(--surface); color: var(--text); border: 1px solid var(--border2); border-radius: 10px; padding: 0.7rem 0.9rem 0.7rem 1.1rem; display: none; align-items: center; gap: 14px; box-shadow: 0 8px 28px rgba(0,0,0,0.22); z-index: 1000; font-size: 0.8rem; max-width: calc(100vw - 2rem); }
+.update-toast.show { display: flex; }
+.update-toast button { font-family: var(--mono); font-size: 0.72rem; padding: 5px 12px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer; white-space: nowrap; }
+
+/* MOBILE: horizontal scroll for wide financial tables instead of crushed/overlapping columns */
+.table-scroll, .dscr-table-wrap, .settle-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 600px) {
+  .table-scroll > table { min-width: 540px; }
+  .dscr-table { min-width: 460px; }
+  .settle-table { min-width: 420px; }
+  /* Inline 3-column metric grids (DSCR & Settlement results) clip amounts on phones — drop to one column */
+  .metrics[style*="repeat(3,1fr)"], .metrics[style*="repeat(3, 1fr)"] { grid-template-columns: 1fr !important; }
+  /* Inline 2-column summary grid (settlement) stacks on phones */
+  .settle-summary-stack { grid-template-columns: 1fr !important; }
+}
+/* Touch targets: ensure interactive controls meet ~40px minimum on coarse pointers */
+@media (pointer: coarse) {
+  .tenure-chip, .preset-btn, .currency-btn, .settle-add-row, .dscr-add-row { min-height: 38px; }
+  .row-del { min-width: 40px; min-height: 36px; opacity: 0.7; }
+  .tab { padding-top: 1rem; padding-bottom: 1rem; }
+}
 </style>
 </head>
 <body>
+<h1 class="sr-only">InCalc — Bangladesh banking calculators: deposit, loan, DSCR/DBR, settlement IRR, and comparison</h1>
 
 <header>
   <div class="logo">
@@ -372,7 +401,7 @@ html.dark-mode .green-sl { color: #92d050; }
     </div>
   </div>
   <div class="header-right">
-    <button class="btn-export no-print" onclick="toggleTheme()" id="theme-toggle" title="Toggle light/dark mode">
+    <button class="btn-export no-print" onclick="toggleTheme()" id="theme-toggle" title="Toggle light/dark mode" aria-label="Toggle light/dark mode">
       <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
@@ -380,23 +409,23 @@ html.dark-mode .green-sl { color: #92d050; }
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 8.5v2h8v-2M6 1v6M3.5 5l2.5 2.5L8.5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Export PDF
     </button>
-    <div class="currency-group">
-      <button class="currency-btn active" onclick="setCurrency('BDT')">৳ BDT</button>
-      <button class="currency-btn" onclick="setCurrency('USD')">$ USD</button>
+    <div class="currency-group" role="group" aria-label="Display currency">
+      <button class="currency-btn active" aria-pressed="true" onclick="setCurrency('BDT')">৳ BDT</button>
+      <button class="currency-btn" aria-pressed="false" onclick="setCurrency('USD')">$ USD</button>
     </div>
   </div>
 </header>
 
-<div class="tabs no-print">
-  <button class="tab active" onclick="switchTab('deposit',this)">Deposit</button>
-  <button class="tab" onclick="switchTab('loan',this)">Loan</button>
-  <button class="tab" onclick="switchTab('dscr',this)">DSCR/DBR</button>
-  <button class="tab" onclick="switchTab('settlement',this)">Settlement IRR</button>
-  <button class="tab" onclick="switchTab('compare',this)">Compare</button>
+<div class="tabs no-print" role="tablist" aria-label="Calculators">
+  <button class="tab active" role="tab" aria-selected="true" aria-controls="panel-deposit" onclick="switchTab('deposit',this)">Deposit</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="panel-loan" onclick="switchTab('loan',this)">Loan</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="panel-dscr" onclick="switchTab('dscr',this)">DSCR/DBR</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="panel-settlement" onclick="switchTab('settlement',this)">Settlement IRR</button>
+  <button class="tab" role="tab" aria-selected="false" aria-controls="panel-compare" onclick="switchTab('compare',this)">Compare</button>
 </div>
 
 <!-- ══ DEPOSIT ══════════════════════════════════════════════════════════════ -->
-<div id="panel-deposit" class="panel active">
+<div id="panel-deposit" class="panel active" role="tabpanel" aria-label="deposit calculator">
   <div class="print-header">
     <div><div style="font-size:1.3rem;font-weight:600;font-family:Georgia,serif">InCalc — Deposit &amp; Investment</div><div style="font-size:0.78rem;color:#666;margin-top:3px" id="d-print-sub">—</div></div>
     <div style="font-size:0.73rem;color:#666" id="d-print-date">—</div>
@@ -425,25 +454,25 @@ html.dark-mode .green-sl { color: #92d050; }
       <!-- INITIAL DEPOSIT -->
       <div class="field" id="d-principal-wrap">
         <div class="field-header"><span class="field-label">Initial deposit</span><span class="field-value" id="d-principal-out">—</span></div>
-        <input type="range" id="d-principal" min="10000" max="5000000" step="10000" value="100000" oninput="calcDeposit()">
+        <input type="range" id="d-principal" aria-label="Initial deposit" min="10000" max="5000000" step="10000" value="100000" oninput="calcDeposit()">
       </div>
 
       <!-- MONTHLY CONTRIBUTION -->
       <div class="field" id="d-contrib-wrap">
         <div class="field-header"><span class="field-label" id="d-contrib-label">Monthly contribution</span><span class="field-value" id="d-contrib-out">—</span></div>
-        <input type="range" id="d-contrib" min="0" max="200000" step="1000" value="5000" oninput="calcDeposit()">
+        <input type="range" id="d-contrib" aria-label="Contribution amount" min="0" max="200000" step="1000" value="5000" oninput="calcDeposit()">
       </div>
 
       <!-- WEEKLY INSTALMENT (WDS only) -->
       <div class="field" id="d-weekly-wrap" style="display:none">
         <div class="field-header"><span class="field-label">Weekly instalment</span><span class="field-value" id="d-weekly-out">—</span></div>
-        <input type="range" id="d-weekly" min="100" max="50000" step="100" value="500" oninput="calcDeposit()">
+        <input type="range" id="d-weekly" aria-label="Weekly instalment" min="100" max="50000" step="100" value="500" oninput="calcDeposit()">
       </div>
 
       <!-- CONTRIBUTION FREQUENCY -->
       <div class="field" id="d-freq-wrap">
         <div class="field-header"><span class="field-label">Contribution frequency</span></div>
-        <select id="d-contrib-freq" onchange="calcDeposit()">
+        <select id="d-contrib-freq" aria-label="Contribution frequency" onchange="calcDeposit()">
           <option value="monthly">Monthly</option>
           <option value="weekly">Weekly</option>
         </select>
@@ -452,19 +481,19 @@ html.dark-mode .green-sl { color: #92d050; }
       <!-- ANNUAL RATE -->
       <div class="field">
         <div class="field-header"><span class="field-label">Annual interest rate</span><span class="field-value" id="d-rate-out">—</span></div>
-        <input type="range" id="d-rate" min="1" max="20" step="0.25" value="8.5" oninput="calcDeposit()">
+        <input type="range" id="d-rate" aria-label="Annual interest rate" min="1" max="20" step="0.25" value="8.5" oninput="calcDeposit()">
       </div>
 
       <!-- TIME HORIZON -->
       <div class="field" id="d-years-wrap">
         <div class="field-header"><span class="field-label">Time horizon</span><span class="field-value" id="d-years-out">—</span></div>
-        <input type="range" id="d-years" min="1" max="40" step="1" value="15" oninput="this.dataset.actual='';document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));calcDeposit()">
+        <input type="range" id="d-years" aria-label="Time horizon in years" min="1" max="40" step="1" value="15" oninput="this.dataset.actual='';document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));calcDeposit()">
       </div>
 
       <!-- COMPOUNDING FREQUENCY -->
       <div class="field" id="d-compound-wrap">
         <div class="field-header"><span class="field-label">Compounding frequency</span></div>
-        <select id="d-freq" onchange="calcDeposit()">
+        <select id="d-freq" aria-label="Compounding frequency" onchange="calcDeposit()">
           <option value="12">Monthly</option>
           <option value="4">Quarterly</option>
           <option value="2">Semi-annually</option>
@@ -478,17 +507,17 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="controls-title">Adjustments</div>
       <div class="toggle-row">
         <span class="toggle-label">Excise duty (ED)</span>
-        <label class="toggle-switch"><input type="checkbox" id="d-ed-toggle" checked onchange="calcDeposit()"><span class="slider"></span></label>
+        <label class="toggle-switch"><input type="checkbox" id="d-ed-toggle" aria-label="Toggle excise duty" checked onchange="calcDeposit()"><span class="slider"></span></label>
       </div>
       <div class="toggle-row">
         <span class="toggle-label">Source tax on interest</span>
-        <label class="toggle-switch"><input type="checkbox" id="d-tax-toggle" checked onchange="calcDeposit()"><span class="slider"></span></label>
+        <label class="toggle-switch"><input type="checkbox" id="d-tax-toggle" aria-label="Toggle source tax on interest" checked onchange="calcDeposit()"><span class="slider"></span></label>
       </div>
       <div class="field" id="d-tin-wrap">
-        <div class="field-header"><span class="field-label">TIN status</span></div>
-        <select id="d-tin" onchange="calcDeposit()">
-          <option value="tin">TIN holder — 10%</option>
-          <option value="notin">Non-TIN holder — 15%</option>
+        <div class="field-header"><span class="field-label">Return submission (PSR)</span></div>
+        <select id="d-tin" aria-label="Proof of return submission status" onchange="calcDeposit()">
+          <option value="tin">Return filed (PSR) — 10%</option>
+          <option value="notin">No return proof — 15%</option>
         </select>
       </div>
 
@@ -538,7 +567,7 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="table-card">
         <div class="table-head-row">
           <span class="table-head-title" id="d-table-title">Year-by-year breakdown</span>
-          <select id="d-table-view" onchange="calcDeposit()" style="width:auto;padding:4px 26px 4px 8px;font-size:0.7rem;">
+          <select id="d-table-view" aria-label="Table view" onchange="calcDeposit()" style="width:auto;padding:4px 26px 4px 8px;font-size:0.7rem;">
             <option value="yearly">Yearly</option>
             <option value="weekly">Weekly</option>
           </select>
@@ -567,7 +596,7 @@ html.dark-mode .green-sl { color: #92d050; }
 </div>
 
 <!-- ══ LOAN ═════════════════════════════════════════════════════════════════ -->
-<div id="panel-loan" class="panel">
+<div id="panel-loan" class="panel" role="tabpanel" aria-label="loan calculator">
   <div class="print-header">
     <div><div style="font-size:1.3rem;font-weight:600;font-family:Georgia,serif">InCalc — Loan &amp; EMI Report</div><div style="font-size:0.78rem;color:#666;margin-top:3px" id="l-print-sub">—</div></div>
     <div style="font-size:0.73rem;color:#666" id="l-print-date">—</div>
@@ -577,27 +606,27 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="controls-title">Loan Parameters</div>
       <div class="field">
         <div class="field-header"><span class="field-label">Loan amount</span><span class="field-value" id="l-principal-out">—</span></div>
-        <input type="range" id="l-principal" min="50000" max="50000000" step="50000" value="1000000" oninput="calcLoan()">
+        <input type="range" id="l-principal" aria-label="Loan amount" min="50000" max="50000000" step="50000" value="1000000" oninput="calcLoan()">
       </div>
       <div class="field">
         <div class="field-header"><span class="field-label">Annual interest rate</span><span class="field-value" id="l-rate-out">—</span></div>
-        <input type="range" id="l-rate" min="1" max="25" step="0.25" value="9" oninput="calcLoan()">
+        <input type="range" id="l-rate" aria-label="Annual interest rate" min="1" max="25" step="0.25" value="9" oninput="calcLoan()">
       </div>
       <div class="field">
         <div class="field-header"><span class="field-label">Loan tenure</span><span class="field-value" id="l-term-out">—</span></div>
-        <input type="range" id="l-term" min="1" max="30" step="1" value="10" oninput="calcLoan()">
+        <input type="range" id="l-term" aria-label="Loan tenure in years" min="1" max="30" step="1" value="10" oninput="calcLoan()">
       </div>
       <div class="divider"></div>
       <div class="controls-title" style="color:var(--amber)">Prepayment — optional</div>
       <div class="field">
         <div class="field-header"><span class="field-label">Extra monthly payment</span><span class="field-value" id="l-prepay-out" style="color:var(--amber)">—</span></div>
-        <input type="range" class="amber-slider" id="l-prepay" min="0" max="100000" step="500" value="0" oninput="calcLoan()">
+        <input type="range" class="amber-slider" id="l-prepay" aria-label="Extra monthly payment" min="0" max="100000" step="500" value="0" oninput="calcLoan()">
       </div>
       <div class="divider"></div>
       <div class="controls-title" style="color:var(--accent2)">Effective Rate Analysis</div>
       <div class="field">
         <div class="field-header"><span class="field-label">Advance EMI deposits</span><span class="field-value" id="l-adv-emi-out" style="color:var(--accent2)">0</span></div>
-        <select id="l-adv-emi" onchange="calcLoan()">
+        <select id="l-adv-emi" aria-label="Advance EMI deposits" onchange="calcLoan()">
           <option value="0">None</option>
           <option value="1">1 EMI</option>
           <option value="2">2 EMIs</option>
@@ -615,11 +644,11 @@ html.dark-mode .green-sl { color: #92d050; }
       </div>
       <div class="field">
         <div class="field-header"><span class="field-label">Cash security amount</span><span class="field-value" id="l-cs-amt-out" style="color:var(--accent2)">—</span></div>
-        <input type="range" id="l-cs-amt" min="0" max="5000000" step="10000" value="0" oninput="calcLoan()">
+        <input type="range" id="l-cs-amt" aria-label="Cash security amount" min="0" max="5000000" step="10000" value="0" oninput="calcLoan()">
       </div>
       <div class="field">
         <div class="field-header"><span class="field-label">Cash security rate</span><span class="field-value" id="l-cs-rate-out" style="color:var(--accent2)">—</span></div>
-        <input type="range" id="l-cs-rate" min="0" max="15" step="0.25" value="0" oninput="calcLoan()">
+        <input type="range" id="l-cs-rate" aria-label="Cash security rate" min="0" max="15" step="0.25" value="0" oninput="calcLoan()">
       </div>
       <div class="field">
         <div class="field-header"><span class="field-label">Cash security tenor</span><span class="field-value" id="l-cs-tenor-out" style="color:var(--accent2)">—</span></div>
@@ -641,7 +670,7 @@ html.dark-mode .green-sl { color: #92d050; }
         <div class="metric"><span class="metric-label">Interest ratio</span><span class="metric-value" id="l-ratio">—</span><span class="metric-sub">Interest as % of loan</span></div>
       </div>
       <div class="metrics" id="l-eff-metrics" style="display:none">
-        <div class="metric"><span class="metric-label">Effective rate</span><span class="metric-value warn" id="l-eff-rate">—</span><span class="metric-sub">True cost of borrowing</span></div>
+        <div class="metric"><span class="metric-label">Effective annual rate</span><span class="metric-value warn" id="l-eff-rate">—</span><span class="metric-sub">Compounded (EAR)</span></div>
         <div class="metric"><span class="metric-label">Net disbursement</span><span class="metric-value teal" id="l-net-disb">—</span><span class="metric-sub">Actual amount received</span></div>
         <div class="metric"><span class="metric-label">Rate markup</span><span class="metric-value warn" id="l-rate-markup">—</span><span class="metric-sub">Effective minus nominal</span></div>
         <div class="metric"><span class="metric-label">CS interest earned</span><span class="metric-value accent" id="l-cs-interest">—</span><span class="metric-sub">On cash security deposit</span></div>
@@ -680,13 +709,13 @@ html.dark-mode .green-sl { color: #92d050; }
 </div>
 
 <!-- ══ COMPARE ══════════════════════════════════════════════════════════════ -->
-<div id="panel-compare" class="panel">
+<div id="panel-compare" class="panel" role="tabpanel" aria-label="compare calculator">
   <div class="compare-grid">
     <div class="compare-card">
       <div class="compare-card-header">
         <div class="scenario-dot" style="background:var(--accent)"></div>
         <span class="compare-card-label">Scenario A</span>
-        <select id="ca-type" onchange="calcCompare()" style="margin-left:auto;width:auto;padding:4px 26px 4px 8px;font-size:0.7rem;">
+        <select id="ca-type" aria-label="Scenario A type" onchange="calcCompare()" style="margin-left:auto;width:auto;padding:4px 26px 4px 8px;font-size:0.7rem;">
           <option value="deposit">Deposit</option>
           <option value="loan">Loan</option>
         </select>
@@ -694,15 +723,15 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="compare-controls">
         <div class="field">
           <div class="field-header"><span class="field-label" id="ca-amt-label">Deposit amount</span><span class="field-value" id="ca-amt-out" style="color:var(--accent)">—</span></div>
-          <input type="range" id="ca-amt" min="50000" max="10000000" step="50000" value="500000" oninput="calcCompare()">
+          <input type="range" id="ca-amt" aria-label="Scenario A amount" min="50000" max="10000000" step="50000" value="500000" oninput="calcCompare()">
         </div>
         <div class="field">
           <div class="field-header"><span class="field-label">Annual rate</span><span class="field-value" id="ca-rate-out" style="color:var(--accent)">—</span></div>
-          <input type="range" id="ca-rate" min="1" max="25" step="0.25" value="8" oninput="calcCompare()">
+          <input type="range" id="ca-rate" aria-label="Scenario A annual rate" min="1" max="25" step="0.25" value="8" oninput="calcCompare()">
         </div>
         <div class="field">
           <div class="field-header"><span class="field-label">Years</span><span class="field-value" id="ca-years-out" style="color:var(--accent)">—</span></div>
-          <input type="range" id="ca-years" min="1" max="30" step="1" value="10" oninput="calcCompare()">
+          <input type="range" id="ca-years" aria-label="Scenario A years" min="1" max="30" step="1" value="10" oninput="calcCompare()">
         </div>
       </div>
     </div>
@@ -710,7 +739,7 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="compare-card-header">
         <div class="scenario-dot" style="background:var(--accent2)"></div>
         <span class="compare-card-label">Scenario B</span>
-        <select id="cb-type" onchange="calcCompare()" style="margin-left:auto;width:auto;padding:4px 26px 4px 8px;font-size:0.7rem;">
+        <select id="cb-type" aria-label="Scenario B type" onchange="calcCompare()" style="margin-left:auto;width:auto;padding:4px 26px 4px 8px;font-size:0.7rem;">
           <option value="deposit">Deposit</option>
           <option value="loan">Loan</option>
         </select>
@@ -718,15 +747,15 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="compare-controls">
         <div class="field">
           <div class="field-header"><span class="field-label" id="cb-amt-label">Deposit amount</span><span class="field-value" id="cb-amt-out" style="color:var(--accent2)">—</span></div>
-          <input type="range" id="cb-amt" min="50000" max="10000000" step="50000" value="500000" oninput="calcCompare()">
+          <input type="range" id="cb-amt" aria-label="Scenario B amount" min="50000" max="10000000" step="50000" value="500000" oninput="calcCompare()">
         </div>
         <div class="field">
           <div class="field-header"><span class="field-label">Annual rate</span><span class="field-value" id="cb-rate-out" style="color:var(--accent2)">—</span></div>
-          <input type="range" id="cb-rate" min="1" max="25" step="0.25" value="12" oninput="calcCompare()">
+          <input type="range" id="cb-rate" aria-label="Scenario B annual rate" min="1" max="25" step="0.25" value="12" oninput="calcCompare()">
         </div>
         <div class="field">
           <div class="field-header"><span class="field-label">Years</span><span class="field-value" id="cb-years-out" style="color:var(--accent2)">—</span></div>
-          <input type="range" id="cb-years" min="1" max="30" step="1" value="10" oninput="calcCompare()">
+          <input type="range" id="cb-years" aria-label="Scenario B years" min="1" max="30" step="1" value="10" oninput="calcCompare()">
         </div>
       </div>
     </div>
@@ -757,7 +786,7 @@ html.dark-mode .green-sl { color: #92d050; }
 </div>
 
 <!-- ══ DSCR / DBR ═════════════════════════════════════════════════════════ -->
-<div id="panel-dscr" class="panel">
+<div id="panel-dscr" class="panel" role="tabpanel" aria-label="dscr calculator">
 
   <!-- PRINT HEADER -->
   <div class="print-header">
@@ -777,7 +806,7 @@ html.dark-mode .green-sl { color: #92d050; }
     <div class="metric"><div class="metric-label">DSCR</div><div class="metric-value accent" id="dscr-out-dscr">—</div></div>
     <div class="metric"><div class="metric-label">DBR (After Loan)</div><div class="metric-value" id="dscr-out-dbr-after">—</div></div>
     <div class="metric"><div class="metric-label">DBR (Before Loan)</div><div class="metric-value teal" id="dscr-out-dbr-before">—</div></div>
-    <div class="metric"><div class="metric-label">Effective Rate</div><div class="metric-value warn" id="dscr-out-eff-rate">—</div></div>
+    <div class="metric"><div class="metric-label">Effective Rate (IRR&times;12)</div><div class="metric-value warn" id="dscr-out-eff-rate">—</div></div>
     <div class="metric"><div class="metric-label">Monthly Installment</div><div class="metric-value" id="dscr-out-emi">—</div></div>
     <div class="metric"><div class="metric-label">EBITDA</div><div class="metric-value teal" id="dscr-out-ebitda">—</div></div>
   </div>
@@ -811,12 +840,12 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="dscr-card" style="margin-bottom:1.25rem">
         <div class="dscr-card-header">DSCR Income Statement</div>
         <div class="dscr-card-body">
-          <div class="dscr-field"><label>Sales (Yearly)</label><input class="dscr-input" type="number" id="dscr-sales" value="50000000" oninput="calcDSCR()"></div>
-          <div class="dscr-field"><label>Less: COGS</label><input class="dscr-input" type="number" id="dscr-cogs" value="45000000" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>Sales (Yearly)</label><input class="dscr-input" type="number" id="dscr-sales" aria-label="Sales yearly" value="50000000" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>Less: COGS</label><input class="dscr-input" type="number" id="dscr-cogs" aria-label="Cost of goods sold" value="45000000" oninput="calcDSCR()"></div>
           <div class="dscr-field"><label>Gross Profit</label><span class="dscr-val accent" id="dscr-gross-profit">—</span></div>
-          <div class="dscr-field"><label>Less: G&amp;A Expenses</label><input class="dscr-input" type="number" id="dscr-ga" value="2500000" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>Less: G&amp;A Expenses</label><input class="dscr-input" type="number" id="dscr-ga" aria-label="G and A expenses" value="2500000" oninput="calcDSCR()"></div>
           <div class="dscr-field"><label>Net Operating Profit</label><span class="dscr-val" id="dscr-nop">—</span></div>
-          <div class="dscr-field"><label>Add: Depreciation</label><input class="dscr-input" type="number" id="dscr-depr" value="50000" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>Add: Depreciation</label><input class="dscr-input" type="number" id="dscr-depr" aria-label="Depreciation" value="50000" oninput="calcDSCR()"></div>
           <div class="dscr-field"><label>EBITDA</label><span class="dscr-val accent" id="dscr-ebitda">—</span></div>
         </div>
       </div>
@@ -870,9 +899,9 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="dscr-card" style="margin-bottom:1.25rem">
         <div class="dscr-card-header">Proposed Loan Parameters</div>
         <div class="dscr-card-body">
-          <div class="dscr-field"><label>Loan Amount</label><input class="dscr-input" type="number" id="dscr-loan-amt" value="1000000" oninput="calcDSCR()"></div>
-          <div class="dscr-field"><label>Tenor (months)</label><input class="dscr-input" type="number" id="dscr-tenor" value="36" oninput="calcDSCR()"></div>
-          <div class="dscr-field"><label>Interest Rate (%)</label><input class="dscr-input" type="number" step="0.01" id="dscr-int-rate" value="19" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>Loan Amount</label><input class="dscr-input" type="number" id="dscr-loan-amt" aria-label="Proposed loan amount" value="1000000" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>Tenor (months)</label><input class="dscr-input" type="number" id="dscr-tenor" aria-label="Tenor in months" min="1" max="480" value="36" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>Interest Rate (%)</label><input class="dscr-input" type="number" step="0.01" min="0" id="dscr-int-rate" aria-label="Interest rate percent" value="19" oninput="calcDSCR()"></div>
           <div class="dscr-field"><label>Monthly Installment (EMI)</label><span class="dscr-val accent" id="dscr-emi">—</span></div>
           <div class="dscr-field"><label>Processing Fee (1%)</label><span class="dscr-val" id="dscr-proc-fee">—</span></div>
         </div>
@@ -882,9 +911,9 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="dscr-card" style="margin-bottom:1.25rem">
         <div class="dscr-card-header">Cash Security (FDR)</div>
         <div class="dscr-card-body">
-          <div class="dscr-field"><label>Cash Security Amount</label><input class="dscr-input" type="number" id="dscr-fdr-amt" value="200000" oninput="calcDSCR()"></div>
-          <div class="dscr-field"><label>FDR Interest Rate (%)</label><input class="dscr-input" type="number" step="0.01" id="dscr-fdr-rate" value="7" oninput="calcDSCR()"></div>
-          <div class="dscr-field"><label>Pool Rate (%)</label><input class="dscr-input" type="number" step="0.01" id="dscr-pool-rate" value="10" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>Cash Security Amount</label><input class="dscr-input" type="number" id="dscr-fdr-amt" aria-label="Cash security amount" value="200000" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>FDR Interest Rate (%)</label><input class="dscr-input" type="number" step="0.01" id="dscr-fdr-rate" aria-label="FDR interest rate percent" value="7" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>Pool Rate (%)</label><input class="dscr-input" type="number" step="0.01" id="dscr-pool-rate" aria-label="Pool rate percent" value="10" oninput="calcDSCR()"></div>
           <div class="dscr-field"><label>FV @ FDR Cost</label><span class="dscr-val" id="dscr-fv-fdr">—</span></div>
           <div class="dscr-field"><label>FV @ Pool Rate</label><span class="dscr-val" id="dscr-fv-pool">—</span></div>
           <div class="dscr-field"><label>Cost Savings</label><span class="dscr-val accent" id="dscr-cost-savings">—</span></div>
@@ -895,7 +924,7 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="dscr-card" style="margin-bottom:1.25rem">
         <div class="dscr-card-header">Advance Installments</div>
         <div class="dscr-card-body">
-          <div class="dscr-field"><label>No. of Advance Installments</label><input class="dscr-input" type="number" id="dscr-adv-inst" value="0" oninput="calcDSCR()"></div>
+          <div class="dscr-field"><label>No. of Advance Installments</label><input class="dscr-input" type="number" id="dscr-adv-inst" aria-label="Number of advance installments" value="0" oninput="calcDSCR()"></div>
           <div class="dscr-field"><label>Loan Deposit</label><span class="dscr-val" id="dscr-loan-deposit">—</span></div>
         </div>
       </div>
@@ -932,7 +961,7 @@ html.dark-mode .green-sl { color: #92d050; }
 </div>
 
 <!-- ══ SETTLEMENT IRR ═══════════════════════════════════════════════════════ -->
-<div id="panel-settlement" class="panel">
+<div id="panel-settlement" class="panel" role="tabpanel" aria-label="settlement calculator">
 
   <!-- RESET BAR (hidden on upload screen) -->
   <div id="settle-reset-bar" style="display:none;justify-content:flex-end;margin-bottom:1rem">
@@ -947,7 +976,7 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="settle-upload-icon">&#128196;</div>
       <div class="settle-upload-title">Drop Settlement IRR Excel here</div>
       <div class="settle-upload-hint">or click to browse &middot; .xlsx format</div>
-      <input type="file" id="settle-file-input" accept=".xlsx,.xls" style="display:none" onchange="handleSettleFile(this.files[0])">
+      <input type="file" id="settle-file-input" aria-label="Upload settlement Excel file" accept=".xlsx,.xls" style="display:none" onchange="handleSettleFile(this.files[0])">
     </div>
     <div class="settle-or">or</div>
     <div style="text-align:center"><button class="settle-btn" onclick="settleStartBlank()">Start Blank</button></div>
@@ -965,10 +994,10 @@ html.dark-mode .green-sl { color: #92d050; }
 
     <!-- Client Info -->
     <div class="settle-info-grid" style="margin-bottom:1.25rem">
-      <div class="settle-field"><label>Client Name</label><input class="settle-input" id="s-client" placeholder="Client name"></div>
-      <div class="settle-field"><label>Account Number</label><input class="settle-input" id="s-account" placeholder="Account number"></div>
-      <div class="settle-field"><label>Loan Amount</label><input class="settle-input yellow-input" id="s-loan-amt" type="number" placeholder="0"></div>
-      <div class="settle-field"><label>Disbursement Date</label><input class="settle-input blue-input" id="s-disb-date" type="date"></div>
+      <div class="settle-field"><label>Client Name</label><input class="settle-input" id="s-client" aria-label="Client name" placeholder="Client name"></div>
+      <div class="settle-field"><label>Account Number</label><input class="settle-input" id="s-account" aria-label="Account number" placeholder="Account number"></div>
+      <div class="settle-field"><label>Loan Amount</label><input class="settle-input yellow-input" id="s-loan-amt" aria-label="Loan amount" type="number" placeholder="0"></div>
+      <div class="settle-field"><label>Disbursement Date</label><input class="settle-input blue-input" id="s-disb-date" aria-label="Disbursement date" type="date"></div>
     </div>
 
     <div class="settle-form-grid">
@@ -1014,7 +1043,7 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="settle-card-header"><span>Settlement Entry</span></div>
       <div class="settle-card-body">
         <div class="settle-info-grid">
-          <div class="settle-field"><label>Settlement Date</label><input class="settle-input blue-input" id="s-settle-date" type="date"></div>
+          <div class="settle-field"><label>Settlement Date</label><input class="settle-input blue-input" id="s-settle-date" aria-label="Settlement date" type="date"></div>
           <div class="settle-field"><label>Collection for IRR (excl. Excise Duty &amp; Legal Fee)</label><span id="s-settle-amt" style="font-family:var(--mono);font-size:0.95rem;font-weight:500;color:var(--accent);padding:6px 0">—</span><input type="hidden" id="s-settle-amt-val" value="0"></div>
         </div>
       </div>
@@ -1067,7 +1096,7 @@ html.dark-mode .green-sl { color: #92d050; }
     </div>
 
     <!-- Summary Breakdown -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1rem">
+    <div class="settle-summary-stack" style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1rem">
       <div class="settle-summary-card">
         <div class="settle-card-header"><span>Collection Summary</span></div>
         <div class="settle-summary-row"><span class="s-label">Total Disbursed Amount</span><span class="s-value" id="s-sum-disb">—</span></div>
@@ -1093,8 +1122,13 @@ html.dark-mode .green-sl { color: #92d050; }
   </div>
 </div>
 
+<div class="update-toast no-print" id="update-toast" role="status" aria-live="polite">
+  <span>A new version of InCalc is available.</span>
+  <button type="button" onclick="window.__applyUpdate&&window.__applyUpdate()">Reload</button>
+</div>
+
 <footer>
-  InCalc &mdash; <a href="https://github.com/clauding-lab" target="_blank">clauding-lab</a> &mdash; Calculations are illustrative. Consult a qualified financial advisor before making financial decisions.
+  InCalc &mdash; <a href="https://github.com/clauding-lab" target="_blank" rel="noopener">clauding-lab</a> &mdash; Calculations are illustrative. Consult a qualified financial advisor before making financial decisions.
 </footer>
 
 <script>
@@ -1102,6 +1136,14 @@ html.dark-mode .green-sl { color: #92d050; }
 let currency='BDT', dChart=null, lChart=null, cChart=null;
 let dscrObligChart=null, dscrGaugeChart=null, dscrMonthlyChart=null;
 let sWaiverChart=null, sBreakdownChart=null, sPaidVsChart=null;
+
+// ── CONFIG: Bangladesh regulatory & rate constants — RE-CHECK after every national budget ──
+// Excise-duty slabs live in getED() (own table + comment); everything else editable here.
+const CONFIG = {
+  sourceTax: { withReturnProof: 0.10, withoutReturnProof: 0.15 }, // TDS on deposit interest, by proof-of-return (PSR) status
+  loanProcFeeRate: 0.01,                                          // DSCR proposed-loan processing fee
+  fxTakaPerUsd: 110                                               // Display only: calcs run in BDT; USD view divides by this. Edit to the prevailing rate.
+};
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 function getChartColors(){
@@ -1141,8 +1183,11 @@ function rebuildCharts(){
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function sym(){ return currency==='BDT'?'৳':'$'; }
+// All calculations run in BDT; the currency toggle converts at the display layer only.
+function toDisp(nBDT){ return currency==='BDT'?nBDT:nBDT/CONFIG.fxTakaPerUsd; }
 function fmt(n){
-  n=Math.round(n);
+  if(!isFinite(n)) n=0;
+  n=Math.round(toDisp(n));
   if(currency==='BDT'){
     let s=Math.abs(n).toString(), neg=n<0, r='';
     if(s.length<=3) return (neg?'-':'')+'৳'+s;
@@ -1153,26 +1198,50 @@ function fmt(n){
   return (n<0?'-$':'$')+Math.abs(n).toLocaleString('en-US');
 }
 function fmtS(n){
-  n=Math.round(n); const neg=n<0; n=Math.abs(n);
+  if(!isFinite(n)) n=0;
+  n=toDisp(n); const neg=n<0; n=Math.abs(n);
   let r;
   if(currency==='BDT'&&n>=10000000) r=sym()+(n/10000000).toFixed(1)+'Cr';
   else if(currency==='BDT'&&n>=100000) r=sym()+(n/100000).toFixed(1)+'L';
   else if(n>=1000000) r=sym()+(n/1000000).toFixed(1)+'M';
   else if(n>=1000) r=sym()+(n/1000).toFixed(0)+'k';
-  else r=sym()+n;
+  else r=sym()+Math.round(n);
   return neg?'-'+r:r;
 }
+// Parse a possibly comma/symbol-formatted cell or input into a number (NaN if non-numeric).
+// Handles accounting-style negatives "(1,234)" and keeps a leading sign; tolerates currency symbols.
+function num(v){
+  if(v===null||v===undefined||v==='') return NaN;
+  if(typeof v==='number') return v;
+  let s=String(v).trim();
+  const acct=/^\(.*\)$/.test(s);
+  s=s.replace(/[(),\s]/g,'').replace(/[^0-9.\-]/g,'');
+  let x=parseFloat(s);
+  if(isNaN(x)) return NaN;
+  return acct?-Math.abs(x):x;
+}
+// BDT-locked formatters — the Settlement tab transcribes a real loan account in Taka, so it never converts to USD
+function fmtBDT(n){ const c=currency; currency='BDT'; const r=fmt(n); currency=c; return r; }
+function fmtSBDT(n){ const c=currency; currency='BDT'; const r=fmtS(n); currency=c; return r; }
+// Grouped number with 2 decimals (no symbol, no FX) for the settlement entry tables — shows amounts as typed
+function grp(n){ if(!isFinite(n)) n=0; return Number(n).toLocaleString(currency==='BDT'?'en-IN':'en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+// Standard annuity payment (EMI): one definition shared by the Loan, Compare and DSCR tabs
+function emiFormula(pv,r,n){ return r>0 ? pv*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1) : (n>0?pv/n:0); }
 
 function setCurrency(c){
   currency=c;
   document.querySelectorAll('.currency-btn').forEach(b=>b.classList.toggle('active',b.textContent.includes(c)));
-  calcDeposit(); calcLoan(); if(document.getElementById('panel-compare').classList.contains('active')) calcCompare();
+  document.querySelectorAll('.currency-btn').forEach(b=>b.setAttribute('aria-pressed',b.textContent.includes(c)?'true':'false'));
+  calcDeposit(); calcLoan(); calcDSCR();
+  if(document.getElementById('panel-compare').classList.contains('active')) calcCompare();
+  if(!document.getElementById('settle-result-screen').classList.contains('hidden')) calcSettlement(false);
 }
 
 function switchTab(name,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>{t.classList.remove('active');t.setAttribute('aria-selected','false');});
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
+  el.setAttribute('aria-selected','true');
   document.getElementById('panel-'+name).classList.add('active');
   if(name==='compare') calcCompare();
   if(name==='settlement') initSettlementIfNeeded();
@@ -1317,7 +1386,7 @@ function calcDeposit(){
   const tableView=document.getElementById('d-table-view').value;
   const edOn=document.getElementById('d-ed-toggle').checked;
   const taxOn=document.getElementById('d-tax-toggle').checked;
-  const taxRate=document.getElementById('d-tin').value==='tin'?0.10:0.15;
+  const taxRate=document.getElementById('d-tin').value==='tin'?CONFIG.sourceTax.withReturnProof:CONFIG.sourceTax.withoutReturnProof;
 
   // Handle fractional years from tenure chips
   const actualYears=document.getElementById('d-years').dataset.actual;
@@ -1337,6 +1406,11 @@ function calcDeposit(){
     contribAmt=weeklyAmt; // weekly amount, used directly in weekly loop
   } else {
     contribFreq=document.getElementById('d-contrib-freq').value;
+  }
+
+  // Keep the contribution field label honest when the user picks Weekly (custom/FD path)
+  if(!isWDS && !isMBS && currentPreset!=='dps'){
+    document.getElementById('d-contrib-label').textContent=(contribFreq==='weekly')?'Weekly contribution':'Monthly contribution';
   }
 
   // Update labels
@@ -1362,14 +1436,12 @@ function calcDeposit(){
     const totalInvested=P;
     const grossFV=P+grossInterest;
 
-    // ED on principal balance each year
+    // ED on principal balance each year (balances are BDT; display converts later)
     let totalED=0;
     const fullYears=Math.floor(years);
-    const usdRate=110;
     for(let y=0;y<fullYears;y++){
       if(edOn){
-        const balForED=currency==='BDT'?P:P*usdRate;
-        totalED+=currency==='BDT'?getED(balForED):getED(balForED)/usdRate;
+        totalED+=getED(P);
       }
     }
 
@@ -1411,7 +1483,7 @@ function calcDeposit(){
       gBal=P; // principal stays flat, but we show cumulative value
       const cumGross=P+yInt*y;
       const cumTax=taxOn?yInt*y*taxRate:0;
-      const cumED=edOn?(()=>{let e=0;const b=currency==='BDT'?P:P*usdRate;for(let i=0;i<y;i++)e+=currency==='BDT'?getED(b):getED(b)/usdRate;return e;})():0;
+      const cumED=edOn?getED(P)*y:0;
       labels.push(years<1?totalMonths+'m':'Yr '+y);
       grossBals.push(Math.round(cumGross));
       netBals.push(Math.round(cumGross-cumTax-cumED));
@@ -1436,7 +1508,7 @@ function calcDeposit(){
     let thtml='';
     for(let y=1;y<=Math.max(1,fullYears);y++){
       const yPay=monthlyPayout*12;
-      const yED=edOn?(()=>{const b=currency==='BDT'?P:P*110;return currency==='BDT'?getED(b):getED(b)/110;})():0;
+      const yED=edOn?getED(P):0;
       const yTax=taxOn?yPay*taxRate:0;
       const cumPay=yPay*y;
       const cumED=yED*y;
@@ -1457,9 +1529,7 @@ function calcDeposit(){
   const labels=[],grossBalances=[],netBalances=[],investedArr=[],rows=[];
   const weeklyRows=[];
   let grossBal=P, netBal=P, totalContrib=0, totalED=0, totalTax=0, totalGrossInterest=0;
-  const usdRate=110;
   const fullYears=Math.ceil(years);
-  const fracMonths=totalMonths;
 
   if(contribFreq==='weekly'){
     const rPer=rate/100/n;
@@ -1467,7 +1537,7 @@ function calcDeposit(){
     let wSinceComp=0;
     for(let y=1;y<=fullYears;y++){
       const weeksThisYear=(y===fullYears && years!==fullYears)?Math.round((years-(y-1))*52):52;
-      const openGross=grossBal, openNet=netBal;
+      const openNet=netBal;
       let yiGross=0,yiNet=0,yc=0,yTax=0;
       for(let w=0;w<weeksThisYear;w++){
         grossBal+=contribAmt; netBal+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
@@ -1485,8 +1555,7 @@ function calcDeposit(){
       // Year-end ED
       let yED=0;
       if(edOn){
-        const balForED=currency==='BDT'?netBal:netBal*usdRate;
-        yED=currency==='BDT'?getED(balForED):getED(balForED)/usdRate;
+        yED=getED(netBal);
         netBal-=yED; totalED+=yED;
       }
       labels.push(years<1?totalMonths+'m':'Yr '+y);
@@ -1499,7 +1568,7 @@ function calcDeposit(){
     // Monthly contribution path
     for(let y=1;y<=fullYears;y++){
       const monthsThisYear=(y===fullYears && totalMonths%12!==0 && years<fullYears)?(totalMonths-(y-1)*12):12;
-      const openGross=grossBal, openNet=netBal;
+      const openNet=netBal;
       let yiGross=0,yiNet=0,yc=0,yTax=0;
       for(let mo=0;mo<monthsThisYear;mo++){
         if(!isFD){
@@ -1508,8 +1577,6 @@ function calcDeposit(){
         const doC=(n===12||(n===4&&mo%3===2)||(n===2&&mo%6===5)||(n===1&&mo===11)||(monthsThisYear<12&&mo===monthsThisYear-1));
         if(doC){
           const rp=rate/100/n;
-          // For fractional year compounding, adjust if needed
-          const periodsInChunk=(n===12)?1:(n===4)?1:(n===2)?1:1;
           const gInt=grossBal*rp; yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
           let nInt=netBal*rp;
           let taxAmt=0;
@@ -1520,8 +1587,7 @@ function calcDeposit(){
       // Year-end ED
       let yED=0;
       if(edOn){
-        const balForED=currency==='BDT'?netBal:netBal*usdRate;
-        yED=currency==='BDT'?getED(balForED):getED(balForED)/usdRate;
+        yED=getED(netBal);
         netBal-=yED; totalED+=yED;
       }
       labels.push(years<1?totalMonths+'m':'Yr '+y);
@@ -1593,7 +1659,8 @@ function calcDeposit(){
 
   // Summary
   const prodName=currentPreset==='fd'?'Fixed Deposit':currentPreset==='dps'?'DPS':currentPreset==='wds'?'Weekly Deposit Scheme':'deposit';
-  const amtDesc=isWDS?`${fmt(weeklyAmt)}/week`:contribAmt>0?`${fmt(P)} + ${fmt(contribAmt)}/month`:fmt(P);
+  const perLabel=contribFreq==='weekly'?'/week':'/month';
+  const amtDesc=isWDS?`${fmt(weeklyAmt)}/week`:contribAmt>0?`${fmt(P)} + ${fmt(contribAmt)}${perLabel}`:fmt(P);
   document.getElementById('d-sum-1').textContent=`You are depositing ${amtDesc} at ${rate}% for ${termLabel} (${prodName}).`;
   document.getElementById('d-sum-2').textContent=`After excise duty (${fmt(totalED)}) and source tax (${fmt(totalTax)}), your net receivable is ${fmt(finalNet)}.`;
   const netYield=totalInvested>0&&years>0?((finalNet-totalInvested)/totalInvested/years*100):0;
@@ -1603,7 +1670,7 @@ function calcDeposit(){
 // ── LOAN + PREPAYMENT ──────────────────────────────────────────────────────────
 function buildSchedule(P,rate,years,extra){
   const rM=rate/100/12, n=years*12;
-  const emi=rM>0?P*rM*Math.pow(1+rM,n)/(Math.pow(1+rM,n)-1):P/n;
+  const emi=emiFormula(P,rM,n);
   const rows=[]; let balance=P, totInt=0, totMo=0;
   for(let y=1;y<=years;y++){
     if(balance<0.01) break;
@@ -1765,7 +1832,7 @@ function scenarioCalc(type,amt,rate,years){
       {l:'Eff. annual yield',v:eay.toFixed(3)+'%',c:''}
     ]};
   } else {
-    const n=years*12; const emi=rM>0?amt*rM*Math.pow(1+rM,n)/(Math.pow(1+rM,n)-1):amt/n;
+    const n=years*12; const emi=emiFormula(amt,rM,n);
     const totalInt=emi*n-amt; const lbls=[],vals=[]; let bal=amt;
     for(let y=1;y<=years;y++){ for(let mo=0;mo<12;mo++){ const ic=bal*rM; bal=Math.max(0,bal-(emi-ic)); } lbls.push('Yr '+y); vals.push(Math.round(bal)); }
     return{lbls,vals,totalInt,metrics:[
@@ -1835,12 +1902,12 @@ function renderDscrShortTerm(){
   tb.innerHTML=dscrShortTerm.map((r,i)=>{
     const burden=r.amount*(r.rate/100)*(r.utilization/100);
     return `<tr>
-      <td><input class="dscr-input dscr-input-wide" value="${escH(r.bank)}" onchange="dscrShortTerm[${i}].bank=this.value" style="text-align:left"></td>
-      <td><input class="dscr-input" type="number" value="${r.amount}" onchange="dscrShortTerm[${i}].amount=parseFloat(this.value)||0;calcDSCR()"></td>
-      <td><input class="dscr-input" type="number" step="0.01" value="${r.rate}" onchange="dscrShortTerm[${i}].rate=parseFloat(this.value)||0;calcDSCR()"></td>
-      <td><input class="dscr-input" type="number" step="1" value="${r.utilization}" onchange="dscrShortTerm[${i}].utilization=parseFloat(this.value)||0;calcDSCR()"></td>
-      <td class="dscr-computed">${fmt(burden)}</td>
-      <td><button class="row-del" onclick="dscrShortTerm.splice(${i},1);renderDscrShortTerm();calcDSCR()">&times;</button></td>
+      <td><input class="dscr-input dscr-input-wide" aria-label="Bank name, short-term row ${i+1}" value="${escH(r.bank)}" onchange="dscrShortTerm[${i}].bank=this.value" style="text-align:left"></td>
+      <td><input class="dscr-input" type="number" aria-label="Loan amount, short-term row ${i+1}" value="${r.amount}" onchange="dscrShortTerm[${i}].amount=parseFloat(this.value)||0;calcDSCR()"></td>
+      <td><input class="dscr-input" type="number" step="0.01" aria-label="Interest rate, short-term row ${i+1}" value="${r.rate}" onchange="dscrShortTerm[${i}].rate=parseFloat(this.value)||0;calcDSCR()"></td>
+      <td><input class="dscr-input" type="number" step="1" aria-label="Utilization, short-term row ${i+1}" value="${r.utilization}" onchange="dscrShortTerm[${i}].utilization=parseFloat(this.value)||0;calcDSCR()"></td>
+      <td class="dscr-computed" id="dscr-stb-${i}">${fmt(burden)}</td>
+      <td><button class="row-del" aria-label="Delete short-term row ${i+1}" onclick="dscrDelShort(${i})">&times;</button></td>
     </tr>`;
   }).join('');
   const total=dscrShortTerm.reduce((s,r)=>s+r.amount*(r.rate/100)*(r.utilization/100),0);
@@ -1852,11 +1919,11 @@ function renderDscrLongTerm(){
   tb.innerHTML=dscrLongTerm.map((r,i)=>{
     const burden=r.emi*12;
     return `<tr>
-      <td><input class="dscr-input dscr-input-wide" value="${escH(r.bank)}" onchange="dscrLongTerm[${i}].bank=this.value" style="text-align:left"></td>
-      <td><input class="dscr-input" type="number" value="${r.amount}" onchange="dscrLongTerm[${i}].amount=parseFloat(this.value)||0;calcDSCR()"></td>
-      <td><input class="dscr-input" type="number" value="${r.emi}" onchange="dscrLongTerm[${i}].emi=parseFloat(this.value)||0;calcDSCR()"></td>
-      <td class="dscr-computed">${fmt(burden)}</td>
-      <td><button class="row-del" onclick="dscrLongTerm.splice(${i},1);renderDscrLongTerm();calcDSCR()">&times;</button></td>
+      <td><input class="dscr-input dscr-input-wide" aria-label="Bank name, long-term row ${i+1}" value="${escH(r.bank)}" onchange="dscrLongTerm[${i}].bank=this.value" style="text-align:left"></td>
+      <td><input class="dscr-input" type="number" aria-label="Loan amount, long-term row ${i+1}" value="${r.amount}" onchange="dscrLongTerm[${i}].amount=parseFloat(this.value)||0;calcDSCR()"></td>
+      <td><input class="dscr-input" type="number" aria-label="EMI, long-term row ${i+1}" value="${r.emi}" onchange="dscrLongTerm[${i}].emi=parseFloat(this.value)||0;calcDSCR()"></td>
+      <td class="dscr-computed" id="dscr-ltb-${i}">${fmt(burden)}</td>
+      <td><button class="row-del" aria-label="Delete long-term row ${i+1}" onclick="dscrDelLong(${i})">&times;</button></td>
     </tr>`;
   }).join('');
   const total=dscrLongTerm.reduce((s,r)=>s+r.emi*12,0);
@@ -1867,10 +1934,8 @@ function dscrAddShortTerm(){ dscrShortTerm.push({bank:'',amount:0,rate:0,utiliza
 function dscrAddLongTerm(){ dscrLongTerm.push({bank:'',amount:0,emi:0}); renderDscrLongTerm(); }
 
 function dscrPMT(rate,nper,pv){
-  // Excel PMT(rate,nper,pv,0,0) — returns positive payment amount
-  if(rate===0) return pv/nper;
-  const r=rate;
-  return (pv*r*Math.pow(1+r,nper))/(Math.pow(1+r,nper)-1);
+  // Excel PMT(rate,nper,pv,0,0) — returns positive payment amount (shared annuity formula)
+  return emiFormula(pv,rate,nper);
 }
 
 function dscrFV(rate,nper,pv){
@@ -1880,6 +1945,8 @@ function dscrFV(rate,nper,pv){
 
 function dscrIRR(cashflows,guess){
   // Newton-Raphson IRR for evenly-spaced periods
+  // No cash flow (or all zero) => undefined IRR, not the initial guess
+  if(!cashflows.some(c=>Math.abs(c)>1e-9)) return NaN;
   let rate=guess||0.01;
   for(let iter=0;iter<300;iter++){
     let npv=0,dnpv=0;
@@ -1929,7 +1996,7 @@ function calcDSCR(){
     emi=Math.round((emi+4.999)/10)*10; // round up to nearest 10
   }
   const proposedBurden=emi*12;
-  const procFee=loanAmt*0.01;
+  const procFee=loanAmt*CONFIG.loanProcFeeRate;
 
   document.getElementById('dscr-emi').textContent=fmt(emi);
   document.getElementById('dscr-out-emi').textContent=fmt(emi);
@@ -1953,7 +2020,7 @@ function calcDSCR(){
   const monthlyOblig=totalObligation/12;
   const monthlyFunds=ebitda/12;
   const prevMonthly=existingTotal/12;
-  const dailySalesX=sales>0?(sales/360)/monthlyOblig:0;
+  const dailySalesX=(sales>0&&monthlyOblig>0)?(sales/360)/monthlyOblig:0;
   const pctIncrease=prevMonthly>0?emi/prevMonthly:0;
   document.getElementById('dscr-daily-sales-x').textContent=dailySalesX.toFixed(3);
   document.getElementById('dscr-monthly-funds').textContent=fmt(Math.round(monthlyFunds));
@@ -1978,12 +2045,6 @@ function calcDSCR(){
   const loanDeposit=emi*advInst;
   document.getElementById('dscr-loan-deposit').textContent=fmt(loanDeposit);
 
-  // Auto-update FDR rate based on loan rate
-  // (User can override, but we set default logic)
-  // FDR rate: 5% if loan rate exactly 10%, 7% if >10%, else 0%
-  // Only auto-set if user hasn't manually changed it
-  // We'll skip auto-set to let user control it freely
-
   // IRR calculation
   const netDisburse=loanAmt-loanDeposit;
   const activeTenor=tenor-advInst;
@@ -2000,8 +2061,10 @@ function calcDSCR(){
     cfWithSave.push(m===activeTenor?emi+costSavings:emi);
   }
 
-  const irrNoSave=dscrIRR(cfNoSave,0.015);
-  const irrWithSave=dscrIRR(cfWithSave,0.015);
+  // IRR is only meaningful with a real disbursement, a positive EMI, and a repayment horizon
+  const irrValid=netDisburse>0 && emi>0 && activeTenor>0;
+  const irrNoSave=irrValid?dscrIRR(cfNoSave,0.015):NaN;
+  const irrWithSave=irrValid?dscrIRR(cfWithSave,0.015):NaN;
   const annualIrrNoSave=isNaN(irrNoSave)?NaN:irrNoSave*12;
   const annualIrrWithSave=isNaN(irrWithSave)?NaN:irrWithSave*12;
 
@@ -2015,9 +2078,12 @@ function calcDSCR(){
   // Build charts
   buildDscrCharts(sales,cogs,grossProfit,ga,nop,depr,ebitda,stTotal,ltTotal,proposedBurden,totalObligation,dscr,monthlyFunds,monthlyOblig);
 
-  // Re-render obligation tables to update computed burden columns
-  renderDscrShortTerm();
-  renderDscrLongTerm();
+  // Update computed burden columns in place (do NOT re-render the tables — that would
+  // destroy the input the user is tabbing out of and break keyboard navigation)
+  dscrShortTerm.forEach((r,i)=>{const el=document.getElementById('dscr-stb-'+i);if(el)el.textContent=fmt(r.amount*(r.rate/100)*(r.utilization/100));});
+  dscrLongTerm.forEach((r,i)=>{const el=document.getElementById('dscr-ltb-'+i);if(el)el.textContent=fmt(r.emi*12);});
+  document.getElementById('dscr-st-total').textContent=fmt(dscrShortTerm.reduce((s,r)=>s+r.amount*(r.rate/100)*(r.utilization/100),0));
+  document.getElementById('dscr-lt-total').textContent=fmt(dscrLongTerm.reduce((s,r)=>s+r.emi*12,0));
 }
 
 function renderDscrCashFlow(cfNoSave,cfWithSave,activeTenor,costSavings){
@@ -2240,8 +2306,8 @@ function parseSettlementSheet(ws,fileName){
   for(const r of recvRows){
     const name=cellVal(ws,'G'+r);
     if(!name) continue;
-    const recv=parseFloat(cellVal(ws,'H'+r))||0;
-    const adj=parseFloat(cellVal(ws,'I'+r))||0;
+    const recv=num(cellVal(ws,'H'+r))||0;
+    const adj=num(cellVal(ws,'I'+r))||0;
     const waiver=Math.max(0,recv-adj);
     settleRecv.push({name:String(name),receivable:recv,waiver:waiver});
   }
@@ -2252,17 +2318,20 @@ function parseSettlementSheet(ws,fileName){
   // Payment schedule — rows B10 onwards
   // Collect all rows first, then identify the settlement row
   const allPayRows=[];
-  let row=10;
-  while(row<=200){
+  let row=10, blanks=0;
+  while(row<=300){
     const dateVal=cellDate(ws,'C'+row);
-    const amtVal=parseFloat(cellVal(ws,'D'+row));
-    if(!dateVal && isNaN(amtVal)) break;
+    const amtVal=num(cellVal(ws,'D'+row));
+    // Tolerate isolated blank rows in the middle of the schedule; stop only after several in a row
+    if(!dateVal && isNaN(amtVal)){ if(++blanks>=5) break; row++; continue; }
+    blanks=0;
     const dCell=ws['D'+row];
     const eCell=ws['E'+row];
     // Detect settlement row: formula referencing H14/H15, or "negotiation" label in col E
     const hasFormula=dCell && typeof dCell.f==='string' && /H1[45]/.test(dCell.f);
     const hasLabel=eCell && typeof eCell.v==='string' && /negotiat/i.test(eCell.v);
-    allPayRows.push({date:dateVal,amount:isNaN(amtVal)?0:Math.abs(amtVal),isSettlement:hasFormula||hasLabel,row:row});
+    // Keep the value as entered (incl. sign) rather than forcing positive — a negative surfaces a data issue instead of hiding it
+    allPayRows.push({date:dateVal,amount:isNaN(amtVal)?0:amtVal,isSettlement:hasFormula||hasLabel,row:row});
     row++;
   }
   // Find settlement row index
@@ -2296,11 +2365,11 @@ function renderSettleRecv(){
     if(r.waiver>r.receivable && r.receivable>0) r.waiver=r.receivable;
     const adj=Math.max(0,r.receivable-r.waiver);
     return `<tr>
-      <td><input class="settle-input" value="${escH(r.name)}" onchange="settleRecv[${i}].name=this.value" style="text-align:left"></td>
-      <td><input class="settle-input yellow-input" type="number" step="any" value="${r.receivable}" onchange="settleRecv[${i}].receivable=parseFloat(this.value)||0;settleClampWaiver(${i});renderSettleRecv()" style="text-align:right"></td>
-      <td style="text-align:right;color:var(--muted);font-family:var(--mono);font-size:0.8rem" id="s-adj-${i}">${adj.toFixed(2)}</td>
-      <td><input class="settle-input yellow-input" type="number" step="any" value="${r.waiver}" onchange="settleSetWaiver(${i},this.value)" style="text-align:right"></td>
-      <td><button class="row-del" onclick="settleRecv.splice(${i},1);renderSettleRecv()">&times;</button></td>
+      <td><input class="settle-input" aria-label="Particulars, receivable row ${i+1}" value="${escH(r.name)}" onchange="settleRecv[${i}].name=this.value" style="text-align:left"></td>
+      <td><input class="settle-input yellow-input" type="number" step="any" aria-label="Receivable amount, row ${i+1}" value="${r.receivable}" onchange="settleSetRecv(${i},this.value)" style="text-align:right"></td>
+      <td style="text-align:right;color:var(--muted);font-family:var(--mono);font-size:0.8rem" id="s-adj-${i}">${grp(adj)}</td>
+      <td><input class="settle-input yellow-input" type="number" step="any" id="s-wv-${i}" aria-label="Waiver amount, row ${i+1}" value="${r.waiver}" onchange="settleSetWaiver(${i},this.value)" style="text-align:right"></td>
+      <td><button class="row-del" aria-label="Delete receivable row ${i+1}" onclick="settleDelRecv(${i})">&times;</button></td>
     </tr>`;
   }).join('');
   settleUpdateTotals();
@@ -2310,9 +2379,9 @@ function renderSettlePay(){
   const tbody=document.getElementById('s-pay-tbody');
   tbody.innerHTML=settlePay.map((p,i)=>`<tr>
     <td class="green-sl">${i+1}</td>
-    <td><input class="settle-input blue-input" type="date" value="${escH(p.date)}" onchange="settlePay[${i}].date=this.value"></td>
-    <td><input class="settle-input blue-input" type="number" value="${p.amount}" onchange="settlePay[${i}].amount=parseFloat(this.value)||0;settleUpdateTotals()" style="text-align:right"></td>
-    <td><button class="row-del" onclick="settlePay.splice(${i},1);renderSettlePay();settleUpdateTotals()">&times;</button></td>
+    <td><input class="settle-input blue-input" type="date" aria-label="Payment date, row ${i+1}" value="${escH(p.date)}" onchange="settlePay[${i}].date=this.value"></td>
+    <td><input class="settle-input blue-input" type="number" aria-label="Payment amount, row ${i+1}" value="${p.amount}" onchange="settlePay[${i}].amount=parseFloat(this.value)||0;settleUpdateTotals()" style="text-align:right"></td>
+    <td><button class="row-del" aria-label="Delete payment row ${i+1}" onclick="settleDelPay(${i})">&times;</button></td>
   </tr>`).join('');
 }
 
@@ -2322,13 +2391,23 @@ function settleAddReceivable(){
 }
 
 function settleSetWaiver(i,val){
-  let w=parseFloat(val)||0;
+  let w=num(val)||0;
   if(w<0) w=0;
   if(w>settleRecv[i].receivable) w=settleRecv[i].receivable;
   settleRecv[i].waiver=w;
-  // Update adj cell inline without full re-render
+  // Update adj cell inline without full re-render (preserves keyboard focus)
   const adjEl=document.getElementById('s-adj-'+i);
-  if(adjEl) adjEl.textContent=(settleRecv[i].receivable-w).toFixed(2);
+  if(adjEl) adjEl.textContent=grp(settleRecv[i].receivable-w);
+  settleUpdateTotals();
+}
+
+function settleSetRecv(i,val){
+  settleRecv[i].receivable=num(val)||0;
+  settleClampWaiver(i);
+  const adjEl=document.getElementById('s-adj-'+i);
+  if(adjEl) adjEl.textContent=grp(settleRecv[i].receivable-settleRecv[i].waiver);
+  const wvEl=document.getElementById('s-wv-'+i); // reflect any waiver clamp without rebuilding the row
+  if(wvEl) wvEl.value=settleRecv[i].waiver;
   settleUpdateTotals();
 }
 
@@ -2343,17 +2422,40 @@ function settleAddPayment(){
   renderSettlePay();
 }
 
+// Row deletes — confirm only when the row actually holds data, so empty rows clear without friction
+function settleDelRecv(i){
+  const r=settleRecv[i];
+  if((r.receivable>0||r.waiver>0)&&!confirm(`Delete "${r.name||'this row'}"? Receivable ${fmt(r.receivable)}, waiver ${fmt(r.waiver)}.`)) return;
+  settleRecv.splice(i,1); renderSettleRecv();
+}
+function settleDelPay(i){
+  const p=settlePay[i];
+  if(p.amount>0&&!confirm(`Delete payment of ${fmt(p.amount)}${p.date?' on '+p.date:''}?`)) return;
+  settlePay.splice(i,1); renderSettlePay(); settleUpdateTotals();
+}
+function dscrDelShort(i){
+  const r=dscrShortTerm[i];
+  if((r.amount>0||r.bank)&&!confirm('Delete this short-term obligation row?')) return;
+  dscrShortTerm.splice(i,1); renderDscrShortTerm(); calcDSCR();
+}
+function dscrDelLong(i){
+  const r=dscrLongTerm[i];
+  if((r.emi>0||r.amount>0||r.bank)&&!confirm('Delete this long-term obligation row?')) return;
+  dscrLongTerm.splice(i,1); renderDscrLongTerm(); calcDSCR();
+}
+
 function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 function settleUpdateTotals(){
+  const fmt=fmtBDT; // settlement is BDT-only — never show converted figures here
   let tR=0,tA=0,tW=0;
   settleRecv.forEach(r=>{
     const adj=r.receivable-r.waiver;
     tR+=r.receivable; tA+=adj; tW+=r.waiver;
   });
-  document.getElementById('s-recv-total-r').textContent=tR.toFixed(2);
-  document.getElementById('s-recv-total-a').textContent=tA.toFixed(2);
-  document.getElementById('s-recv-total-w').textContent=tW.toFixed(2);
+  document.getElementById('s-recv-total-r').textContent=grp(tR);
+  document.getElementById('s-recv-total-a').textContent=grp(tA);
+  document.getElementById('s-recv-total-w').textContent=grp(tW);
 
   // Collection for IRR = sum of adjustments for non-excise/legal rows, minus waivers of excise/legal rows
   // Formula from Excel: (sum of key adjustments) - (excise duty waiver + legal fee waiver)
@@ -2413,6 +2515,7 @@ function xirr(cashflows,dates){
 }
 
 function calcSettlement(interactive){
+  const fmt=fmtBDT; // settlement is BDT-only — never show converted figures here
   // interactive=true only from the Calculate button — re-renders (theme toggle) must not re-fire alerts
   const loanAmt=parseFloat(document.getElementById('s-loan-amt').value)||0;
   const disbDate=document.getElementById('s-disb-date').value;
@@ -2442,12 +2545,13 @@ function calcSettlement(interactive){
     if(p.date && p.amount>0){
       cf.push(p.amount);
       dt.push(new Date(p.date));
-    } else if(p.amount>0){
+    } else if(p.amount!==0){
+      // has an amount but can't enter the IRR: either no date, or a non-positive amount
       skippedPay++;
     }
   });
   if(skippedPay>0 && interactive){
-    alert(skippedPay+' payment row(s) have an amount but no date and were EXCLUDED from the IRR. Add the missing dates to include them.');
+    alert(skippedPay+' payment row(s) were EXCLUDED from the IRR (missing date, or a zero/negative amount). Check those rows to include them.');
   }
 
   // Collection for IRR = sum of non-excise/legal adjustments, minus excise/legal waivers
@@ -2521,6 +2625,7 @@ function calcSettlement(interactive){
 }
 
 function buildSettleCharts(loanAmt,disbDate,payments,receivables,collIRR,totalPaid,proposedPayment,totalWaiver,settleDate){
+  const fmt=fmtBDT, fmtS=fmtSBDT; // settlement is BDT-only
   const tc=getChartColors();
 
   // S1: Waiver Breakdown (horizontal grouped bar)
@@ -2598,6 +2703,7 @@ function buildSettleCharts(loanAmt,disbDate,payments,receivables,collIRR,totalPa
 }
 
 function buildSettlePrintData(){
+  const fmt=fmtBDT; // settlement is BDT-only
   const now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
   const client=document.getElementById('s-client').value||'—';
   const account=document.getElementById('s-account').value||'—';
@@ -2624,9 +2730,9 @@ function buildSettlePrintData(){
   settleRecv.forEach(r=>{
     const adj=r.receivable-r.waiver;
     tR+=r.receivable; tA+=adj; tW+=r.waiver;
-    html+=`<tr><td>${escH(r.name)}</td><td>${r.receivable.toFixed(2)}</td><td>${adj.toFixed(2)}</td><td>${r.waiver.toFixed(2)}</td></tr>`;
+    html+=`<tr><td>${escH(r.name)}</td><td>${grp(r.receivable)}</td><td>${grp(adj)}</td><td>${grp(r.waiver)}</td></tr>`;
   });
-  html+=`<tr style="font-weight:600;background:#f0f0f0"><td>Total</td><td>${tR.toFixed(2)}</td><td>${tA.toFixed(2)}</td><td>${tW.toFixed(2)}</td></tr>`;
+  html+=`<tr style="font-weight:600;background:#f0f0f0"><td>Total</td><td>${grp(tR)}</td><td>${grp(tA)}</td><td>${grp(tW)}</td></tr>`;
   html+=`</tbody></table>`;
 
   // Payment schedule
@@ -2635,9 +2741,9 @@ function buildSettlePrintData(){
   let payTotal=0;
   settlePay.forEach((p,i)=>{
     payTotal+=p.amount;
-    html+=`<tr><td>${i+1}</td><td>${escH(p.date)}</td><td>${p.amount.toFixed(2)}</td></tr>`;
+    html+=`<tr><td>${i+1}</td><td>${escH(p.date)}</td><td>${grp(p.amount)}</td></tr>`;
   });
-  html+=`<tr style="font-weight:600;background:#f0f0f0"><td colspan="2">Total</td><td>${payTotal.toFixed(2)}</td></tr>`;
+  html+=`<tr style="font-weight:600;background:#f0f0f0"><td colspan="2">Total</td><td>${grp(payTotal)}</td></tr>`;
   html+=`</tbody></table>`;
 
   document.getElementById('s-print-data').innerHTML=html;
@@ -2654,7 +2760,25 @@ function buildSettlePrintData(){
 })();
 calcLoan();
 calcDeposit();
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+
+// ── Service worker: register, and surface an in-app prompt when a new version is installed ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      const sw=reg.installing;
+      if(!sw) return;
+      sw.addEventListener('statechange',()=>{
+        // A new worker finished installing while an old one still controls the page => update ready
+        if(sw.state==='installed' && navigator.serviceWorker.controller){
+          window.__applyUpdate=()=>{ document.getElementById('update-toast').classList.remove('show'); window.__swUpdating=true; sw.postMessage('skip-waiting'); };
+          document.getElementById('update-toast').classList.add('show');
+        }
+      });
+    });
+  }).catch(err=>console.warn('SW registration failed:',err));
+  // Reload ONLY when the user accepted an update — not on the first-visit clients.claim()
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(window.__swUpdating){ window.__swUpdating=false; location.reload(); } });
+}
 </script>
 </body>
 </html>

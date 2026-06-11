@@ -1,0 +1,15 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Local agent / tooling scratch (do NOT commit local/machine settings or captures)
+.claude/settings.json
+.claude/settings.local.json
+.playwright-mcp/
+SS/
+node_modules/
+
+# Build/test scratch
+*.log

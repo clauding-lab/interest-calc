@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "incalc",
+      "runtimeExecutable": "ruby",
+      "runtimeArgs": ["-run", "-ehttpd", "--", "--port=8080", "--document-root=."],
+      "port": 8080
+    }
+  ]
+}
