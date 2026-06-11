@@ -27,6 +27,7 @@ README.md  LICENSE  AGENTS.md  VISION.md  AGENT_LEARNINGS.md
 | "Test" the calc functions | extract a function from the `<script>` block and run it under `node` (see existing session test harnesses) |
 | Parse-check the inline script | `node -e "const h=require('fs').readFileSync('index.html','utf8');const s=[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).sort((a,b)=>b.length-a.length)[0];new (require('vm').Script)(s);console.log('OK')"` |
 | Deploy | commit to `main`; GitHub Pages publishes automatically |
+| Release | `git tag -a vX.Y.Z -m "..."` → `git push origin vX.Y.Z` → `gh release create vX.Y.Z --title "InCalc vX.Y.Z" --notes-file <notes.md>` (first done for v1.0.0) |
 
 There is no unit-test suite checked in. Financial changes are verified by extracting the function and recomputing concrete examples under `node`, plus (for UI) Playwright screenshots at 320/768/1440.
 
