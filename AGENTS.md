@@ -40,6 +40,7 @@ There is no unit-test suite checked in. Financial changes are verified by extrac
 5. **CDN scripts are SRI-pinned.** If you change the Chart.js or SheetJS version, recompute the `integrity` hash (`curl … | openssl dgst -sha384 -binary | openssl base64 -A`) or the script silently won't load.
 6. **Escape everything from Excel/user input** into `innerHTML` via the existing `escH()`. The Settlement tab parses files received from third parties.
 7. **Keep it one file.** Do not split `index.html` into modules or introduce a bundler — the no-build, single-file shape is intentional.
+8. **The iOS app (`clauding-lab/incalc-ios`) ports this engine.** Any change to `CONFIG`, `getED`, or calculation behavior requires regenerating `tools/golden-vectors.json` (run `node tools/generate-golden-vectors.mjs`) and updating the Swift engine — see `incalc-ios/AGENTS.md`.
 
 ## Cross-cutting rules
 
