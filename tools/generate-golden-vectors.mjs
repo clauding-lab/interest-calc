@@ -159,5 +159,85 @@ vectors.xirr = [
   { cashflows: [-1000000], dates: ['2023-01-01'] },                              // <2 flows -> null
 ].map(c => ({ ...c, rate: nn(xirr(c.cashflows, c.dates.map(D))) }));
 
+// ---- DOM stub: every getElementById returns a stable stub element ----
+const els = new Map();
+function el(id) {
+  if (!els.has(id)) els.set(id, { value:'', textContent:'', innerHTML:'', checked:false,
+    style:{}, classList:{ add(){}, remove(){}, toggle(){}, contains(){return false} }, dataset:{} });
+  return els.get(id);
+}
+globalThis.document = { getElementById: el, querySelectorAll: () => [], documentElement: el('docEl') };
+globalThis.getComputedStyle = () => ({ getPropertyValue: () => '#000000' });
+globalThis.Chart = class { constructor(){} destroy(){} update(){} };  // charts are no-ops
+globalThis.localStorage = { getItem: () => null, setItem(){} };
+globalThis.dChart = null;
+(0, eval)(extract('getChartColors'));
+(0, eval)(extract('alpha'));
+(0, eval)(extract('fmtBDT'));
+(0, eval)(extract('fmtSBDT'));
+(0, eval)(extract('grp'));
+(0, eval)(extract('calcDeposit'));
+globalThis.currentPreset = 'custom';
+
+const deNum = s => parseFloat(String(s).replace(/[৳,]/g,'')) || 0;  // "৳21,78,010" -> 2178010
+function runDeposit(c) {  // c: {preset,P,contrib,weekly,rate,compound,years,actualYears,edOn,taxOn,psr,tableView}
+  globalThis.currentPreset = c.preset;
+  el('d-principal').value = String(c.P); el('d-contrib').value = String(c.contrib ?? 0);
+  el('d-weekly').value = String(c.weekly ?? 0); el('d-rate').value = String(c.rate);
+  el('d-freq').value = String(c.compound); el('d-years').value = String(c.years);
+  el('d-years').dataset.actual = c.actualYears != null ? String(c.actualYears) : '';
+  el('d-contrib-freq').value = c.contribFreq ?? 'monthly';
+  el('d-table-view').value = 'yearly';
+  el('d-ed-toggle').checked = c.edOn; el('d-tax-toggle').checked = c.taxOn;
+  el('d-tin').value = c.psr ? 'tin' : 'notin';
+  calcDeposit();
+  const rows = [...el('d-table').innerHTML.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].map(m =>
+    [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(t => t[1].replace(/<[^>]*>/g,'')));
+  return { future: deNum(el('d-future').textContent), interest: deNum(el('d-interest').textContent),
+    invested: deNum(el('d-invested').textContent), eay: parseFloat(el('d-eay').textContent),
+    ed: deNum(el('d-ed-total').textContent), tax: deNum(el('d-tax-total').textContent),
+    net: deNum(el('d-net-recv').textContent),
+    futureStr: el('d-future').textContent, netStr: el('d-net-recv').textContent,
+    rows: rows.map(r => r.map(cell => cell === '—' ? 0 : deNum(cell))) };
+}
+
+vectors.deposit = [];
+const depositCases = [];
+// Custom grid
+for (const P of [0, 100000, 1000000]) for (const contrib of [0, 5000, 50000])
+  for (const rate of [1, 8.5, 12, 20]) for (const compound of [12, 4, 2, 1])
+    for (const years of [1, 5, 15]) for (const psr of [true, false])
+      depositCases.push({ preset:'custom', P, contrib, rate, compound, years, edOn:true, taxOn:true, psr });
+// Presets + fractional tenors + toggle-off cases
+depositCases.push(
+  { preset:'fd',  P:100000, contrib:0, rate:9.5,  compound:4,  years:1, actualYears:0.25, edOn:true,  taxOn:true,  psr:true },
+  { preset:'fd',  P:3000000, contrib:0, rate:8,   compound:4,  years:5, edOn:true,  taxOn:true,  psr:true },
+  { preset:'fd',  P:100000, contrib:0, rate:9.5,  compound:4,  years:2, edOn:false, taxOn:false, psr:true },
+  { preset:'dps', P:0, contrib:5000,  rate:11,    compound:12, years:5, edOn:true,  taxOn:true,  psr:true },
+  { preset:'wds', P:0, weekly:500,  rate:10.5, compound:12, years:1, actualYears:1, contribFreq:'weekly', edOn:true, taxOn:true, psr:true },
+  { preset:'wds', P:0, weekly:2000, rate:10.5, compound:12, years:1, actualYears:0.5, contribFreq:'weekly', edOn:true, taxOn:false, psr:false },
+  { preset:'mbs', P:500000, contrib:0, rate:10, compound:12, years:3, edOn:true, taxOn:true, psr:true },
+  { preset:'mbs', P:2000000, contrib:0, rate:10, compound:12, years:5, edOn:true, taxOn:true, psr:false },
+  { preset:'custom', P:100000, contrib:2000, contribFreq:'weekly', rate:8.5, compound:12, years:3, edOn:true, taxOn:true, psr:true },
+);
+for (const c of depositCases) vectors.deposit.push({ input: c, output: runDeposit(c) });
+
+// ---- Settlement collection-for-IRR vectors ----
+(0, eval)(extract('settleUpdateTotals'));
+vectors.settlementCollection = [];
+for (const recv of [
+  [{name:'URPA',receivable:50000,waiver:0},{name:'Principal Overdue',receivable:600000,waiver:0},
+   {name:'Interest Overdue',receivable:60000,waiver:0},{name:'Late Payment Interest (LPI)',receivable:25000,waiver:20000},
+   {name:'Excise Duty',receivable:3000,waiver:0},{name:'Supervision Fee',receivable:8000,waiver:8000},
+   {name:'Legal Fee',receivable:12000,waiver:0}],
+  [{name:'Excise Duty',receivable:5000,waiver:5000},{name:'Legal Fee',receivable:10000,waiver:10000}], // all excluded+waived -> negative
+  [{name:'Principal Overdue',receivable:100000,waiver:100000}],                                        // fully waived -> 0
+  [],
+]) {
+  globalThis.settleRecv = recv;
+  settleUpdateTotals();
+  vectors.settlementCollection.push({ recv, collIRR: parseFloat(el('s-settle-amt-val').value) });
+}
+
 writeFileSync(new URL('./golden-vectors.json', import.meta.url), JSON.stringify(vectors, null, 1));
 console.log('sections:', Object.keys(vectors).map(k => `${k}:${Array.isArray(vectors[k]) ? vectors[k].length : '-'}`).join(' '));
