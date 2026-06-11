@@ -37,6 +37,20 @@ When something ships broken, when a methodology gap is exposed, or when a smoke 
 
 ## Entries (most recent first)
 
+## 2026-06-11 — main | Service worker cache purge nearly wiped a sibling app — GitHub Pages project sites share one origin
+
+**Trigger:** Pre-deploy adversarial review of the v2 cache bump caught it before shipping. `sw.js`'s activate handler deleted *every* Cache Storage entry not named `incalc-v2` — but `clauding-lab.github.io` hosts multiple project sites (this app at `/interest-calc/`, SME-360 at `/SME-360/`), and Cache Storage is **origin**-scoped, not path-scoped. Deploying the bump would have deleted SME-360's `sme360-v2` cache in every returning browser, breaking its offline mode with no self-heal (its SW never re-caches at runtime).
+
+**What went wrong:** The `caches.keys().filter(k => k !== CACHE_NAME)` purge pattern (copied everywhere on the web) silently assumes the app owns the whole origin. On `<user>.github.io` project sites, it never does.
+
+**Lesson:** On a shared origin, every service worker must namespace its caches and purge only its own prefix — `keys.filter(k => k.startsWith('incalc-') && k !== CACHE_NAME)`.
+
+**Prevention:** Any SW change in any repo deployed to `clauding-lab.github.io` must use a unique cache prefix and a prefix-scoped purge. Note: **SME-360's own sw.js has the identical delete-all bug** and will wipe InCalc's cache on its next bump — fix it there too (InCalc partially self-heals via runtime re-puts; the precached CDN assets don't).
+
+**Hotfix:** Prefix-scoped filter shipped in the same commit as the v2 bump (`81cedf7`), alongside SheetJS precaching so Settlement IRR works offline.
+
+**Cross-references:** Global rulebook entry 2026-06-11 (shared-origin collisions); SME-360 repo follow-up.
+
 ## 2026-06-11 — main | Real borrower data shipped inside the embedded "sample" workbook, public for ~3 months
 
 **Trigger:** A full-repo multi-agent review decoded the `SETTLE_SAMPLE_B64` blob (`index.html`, the Settlement IRR tab's downloadable sample) and found confidential data inside. The repo was public on GitHub with the app live on GitHub Pages.
