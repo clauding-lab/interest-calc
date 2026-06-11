@@ -458,7 +458,7 @@ html.dark-mode .green-sl { color: #92d050; }
       <!-- TIME HORIZON -->
       <div class="field" id="d-years-wrap">
         <div class="field-header"><span class="field-label">Time horizon</span><span class="field-value" id="d-years-out">—</span></div>
-        <input type="range" id="d-years" min="1" max="40" step="1" value="15" oninput="calcDeposit()">
+        <input type="range" id="d-years" min="1" max="40" step="1" value="15" oninput="this.dataset.actual='';document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));calcDeposit()">
       </div>
 
       <!-- COMPOUNDING FREQUENCY -->
@@ -1022,7 +1022,7 @@ html.dark-mode .green-sl { color: #92d050; }
 
     <div class="settle-actions">
       <button class="settle-btn" onclick="settleBackToUpload()">Back</button>
-      <button class="settle-btn-primary settle-btn" onclick="calcSettlement()">Calculate IRR</button>
+      <button class="settle-btn-primary settle-btn" onclick="calcSettlement(true)">Calculate IRR</button>
     </div>
   </div>
 
@@ -1215,6 +1215,8 @@ function setPreset(p){
   currentPreset=p;
   document.querySelectorAll('.preset-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===p));
   const show=(id,v)=>{document.getElementById(id).style.display=v?'':'none';};
+  // Clear any tenure-chip override from a previous preset (stale value = wrong tenor)
+  document.getElementById('d-years').dataset.actual='';
   // Reset visibility
   show('d-principal-wrap',true); show('d-contrib-wrap',true); show('d-weekly-wrap',false);
   show('d-freq-wrap',true); show('d-compound-wrap',true); show('d-years-wrap',true);
@@ -1288,13 +1290,16 @@ function selectTenure(val,el){
 }
 
 // ── EXCISE DUTY SLABS (BDT) ──────────────────────────────────────────────────
+// NBR slabs FY2025-26 (effective 1 Jul 2025) — re-check after every national budget
 function getED(balBDT){
-  if(balBDT<=100000) return 0;
-  if(balBDT<=1000000) return 150;
-  if(balBDT<=5000000) return 500;
-  if(balBDT<=10000000) return 3000;
-  if(balBDT<=50000000) return 15000;
-  return 40000;
+  if(balBDT<=300000) return 0;
+  if(balBDT<=500000) return 150;
+  if(balBDT<=1000000) return 500;
+  if(balBDT<=5000000) return 3000;
+  if(balBDT<=10000000) return 5000;
+  if(balBDT<=20000000) return 10000;
+  if(balBDT<=50000000) return 20000;
+  return 50000;
 }
 
 // ── DEPOSIT CALC ──────────────────────────────────────────────────────────────
@@ -1763,7 +1768,7 @@ function scenarioCalc(type,amt,rate,years){
     const n=years*12; const emi=rM>0?amt*rM*Math.pow(1+rM,n)/(Math.pow(1+rM,n)-1):amt/n;
     const totalInt=emi*n-amt; const lbls=[],vals=[]; let bal=amt;
     for(let y=1;y<=years;y++){ for(let mo=0;mo<12;mo++){ const ic=bal*rM; bal=Math.max(0,bal-(emi-ic)); } lbls.push('Yr '+y); vals.push(Math.round(bal)); }
-    return{lbls,vals,metrics:[
+    return{lbls,vals,totalInt,metrics:[
       {l:'Monthly EMI',v:fmt(emi),c:''},
       {l:'Total interest',v:fmt(totalInt),c:'worse'},
       {l:'Total paid',v:fmt(emi*n),c:''},
@@ -1802,7 +1807,7 @@ function calcCompare(){
     const aW=A.vals[A.vals.length-1]>B.vals[B.vals.length-1];
     wb.textContent=aW?'A yields more':'B yields more'; wb.className='winner-badge '+(aW?'winner-a':'winner-b');
   } else if(aType==='loan'&&bType==='loan'){
-    const aW=A.metrics[1].v<B.metrics[1].v;
+    const aW=A.totalInt<B.totalInt;
     wb.textContent=aW?'A costs less':'B costs less'; wb.className='winner-badge '+(aW?'winner-a':'winner-b');
   } else { wb.textContent='Mixed comparison'; wb.className='winner-badge winner-a'; }
 
@@ -1989,20 +1994,10 @@ function calcDSCR(){
   cfNoSave.push(-netDisburse);
   cfWithSave.push(-netDisburse);
 
-  // Months 1 to 60
-  for(let m=1;m<=60;m++){
-    if(m<=activeTenor){
-      cfNoSave.push(emi);
-      // Cost savings added at the final active month
-      if(m===activeTenor){
-        cfWithSave.push(emi+costSavings);
-      } else {
-        cfWithSave.push(emi);
-      }
-    } else {
-      cfNoSave.push(0);
-      cfWithSave.push(0);
-    }
+  // Months 1 to activeTenor (cost savings credited in the final active month)
+  for(let m=1;m<=activeTenor;m++){
+    cfNoSave.push(emi);
+    cfWithSave.push(m===activeTenor?emi+costSavings:emi);
   }
 
   const irrNoSave=dscrIRR(cfNoSave,0.015);
@@ -2028,7 +2023,7 @@ function calcDSCR(){
 function renderDscrCashFlow(cfNoSave,cfWithSave,activeTenor,costSavings){
   const tb=document.getElementById('dscr-cf-tbody');
   let rows='';
-  for(let m=0;m<=Math.min(activeTenor,60);m++){
+  for(let m=0;m<=activeTenor;m++){
     const savAdj=(m===activeTenor&&m>0)?costSavings:0;
     rows+=`<tr>
       <td style="text-align:left">${m}</td>
@@ -2278,13 +2273,14 @@ function parseSettlementSheet(ws,fileName){
     for(let i=0;i<settleIdx;i++) settlePay.push({date:allPayRows[i].date,amount:allPayRows[i].amount});
     document.getElementById('s-settle-date').value=allPayRows[settleIdx].date;
   } else {
-    // No settlement row detected — all rows are payments
+    // No settlement row detected — all rows are payments; clear any date left by a previous file
     for(const r of allPayRows) settlePay.push({date:r.date,amount:r.amount});
+    document.getElementById('s-settle-date').value='';
   }
 
   // Show file badge
   document.getElementById('settle-file-badge-wrap').innerHTML=
-    `<div class="settle-file-badge">&#128196; Loaded from: ${fileName}</div>`;
+    `<div class="settle-file-badge">&#128196; Loaded from: ${escH(fileName)}</div>`;
 
   renderSettleRecv();
   renderSettlePay();
@@ -2314,7 +2310,7 @@ function renderSettlePay(){
   const tbody=document.getElementById('s-pay-tbody');
   tbody.innerHTML=settlePay.map((p,i)=>`<tr>
     <td class="green-sl">${i+1}</td>
-    <td><input class="settle-input blue-input" type="date" value="${p.date}" onchange="settlePay[${i}].date=this.value"></td>
+    <td><input class="settle-input blue-input" type="date" value="${escH(p.date)}" onchange="settlePay[${i}].date=this.value"></td>
     <td><input class="settle-input blue-input" type="number" value="${p.amount}" onchange="settlePay[${i}].amount=parseFloat(this.value)||0;settleUpdateTotals()" style="text-align:right"></td>
     <td><button class="row-del" onclick="settlePay.splice(${i},1);renderSettlePay();settleUpdateTotals()">&times;</button></td>
   </tr>`).join('');
@@ -2347,7 +2343,7 @@ function settleAddPayment(){
   renderSettlePay();
 }
 
-function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 function settleUpdateTotals(){
   let tR=0,tA=0,tW=0;
@@ -2416,13 +2412,18 @@ function xirr(cashflows,dates){
   return Math.abs(npv(rate))<1?rate:NaN;
 }
 
-function calcSettlement(){
+function calcSettlement(interactive){
+  // interactive=true only from the Calculate button — re-renders (theme toggle) must not re-fire alerts
   const loanAmt=parseFloat(document.getElementById('s-loan-amt').value)||0;
   const disbDate=document.getElementById('s-disb-date').value;
   const settleDate=document.getElementById('s-settle-date').value;
 
   if(!loanAmt||!disbDate){
-    alert('Please enter Loan Amount and Disbursement Date.');
+    if(interactive) alert('Please enter Loan Amount and Disbursement Date.');
+    return;
+  }
+  if(!settleDate){
+    if(interactive) alert('Please enter the Settlement Date — the Settlement IRR cannot be computed without the settlement collection.');
     return;
   }
 
@@ -2435,13 +2436,19 @@ function calcSettlement(){
   cf.push(-loanAmt);
   dt.push(new Date(disbDate));
 
-  // Payments (positive inflows)
+  // Payments (positive inflows) — a payment without a date cannot enter the XIRR
+  let skippedPay=0;
   settlePay.forEach(p=>{
     if(p.date && p.amount>0){
       cf.push(p.amount);
       dt.push(new Date(p.date));
+    } else if(p.amount>0){
+      skippedPay++;
     }
   });
+  if(skippedPay>0 && interactive){
+    alert(skippedPay+' payment row(s) have an amount but no date and were EXCLUDED from the IRR. Add the missing dates to include them.');
+  }
 
   // Collection for IRR = sum of non-excise/legal adjustments, minus excise/legal waivers
   let collIRR=0, exclWaiver=0;
@@ -2455,9 +2462,11 @@ function calcSettlement(){
     }
   });
   collIRR-=exclWaiver;
-  if(settleDate && collIRR>0){
+  if(collIRR>0){
     cf.push(collIRR);
     dt.push(new Date(settleDate));
+  } else if(interactive){
+    alert('Collection for IRR is zero or negative — check receivables/waivers. The IRR shown excludes the settlement collection.');
   }
 
   // Calculate XIRR
@@ -2561,7 +2570,7 @@ function buildSettleCharts(loanAmt,disbDate,payments,receivables,collIRR,totalPa
   }
   document.getElementById('s-breakdown-total').textContent=fmt(totalColl);
   document.getElementById('s-breakdown-legend').innerHTML=bLabels.map((l,i)=>
-    `<div class="legend-item"><div class="legend-dot" style="background:${bColors[i]}"></div>${l}</div>`
+    `<div class="legend-item"><div class="legend-dot" style="background:${bColors[i]}"></div>${escH(l)}</div>`
   ).join('');
 
   // S3: Paid vs Outstanding (horizontal stacked bar)
@@ -2626,7 +2635,7 @@ function buildSettlePrintData(){
   let payTotal=0;
   settlePay.forEach((p,i)=>{
     payTotal+=p.amount;
-    html+=`<tr><td>${i+1}</td><td>${p.date}</td><td>${p.amount.toFixed(2)}</td></tr>`;
+    html+=`<tr><td>${i+1}</td><td>${escH(p.date)}</td><td>${p.amount.toFixed(2)}</td></tr>`;
   });
   html+=`<tr style="font-weight:600;background:#f0f0f0"><td colspan="2">Total</td><td>${payTotal.toFixed(2)}</td></tr>`;
   html+=`</tbody></table>`;
