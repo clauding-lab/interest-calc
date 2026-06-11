@@ -8,8 +8,10 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const main = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
   .map(m => m[1]).sort((a, b) => b.length - a.length)[0];
 
-// Naive brace counter: it works because none of the 15 extracted functions
-// contain an UNBALANCED brace inside a string/regex literal (verified at v1.0.0).
+// Naive brace counter: it works because none of the functions we extract
+// (the pure set below + the DOM-coupled set in the Task-2 section: getChartColors,
+// alpha, fmtBDT, fmtSBDT, calcDeposit, settleUpdateTotals) contain an UNBALANCED
+// brace inside a string/regex literal (verified at v1.0.0).
 // `${...}` template braces stay balanced, so they're fine. If a future edit adds
 // something like a string `'opening {'` to one of these functions, extract() will
 // throw "unbalanced braces" loudly on the next run — fix the source, not this counter.
@@ -175,11 +177,15 @@ globalThis.dChart = null;
 (0, eval)(extract('alpha'));
 (0, eval)(extract('fmtBDT'));
 (0, eval)(extract('fmtSBDT'));
-(0, eval)(extract('grp'));
+(0, eval)(extract('grp'));   // settleUpdateTotals/calcDeposit call grp; re-eval is a harmless redefine (also in the pure loop above)
 (0, eval)(extract('calcDeposit'));
 globalThis.currentPreset = 'custom';
 
 const deNum = s => parseFloat(String(s).replace(/[৳,]/g,'')) || 0;  // "৳21,78,010" -> 2178010
+// Runs the REAL calcDeposit() engine instead of reimplementing its maths: inputs go IN
+// via stub DOM elements, calcDeposit() runs, outputs come BACK out of those same elements
+// (the on-screen result spans + table). So any future change to the web calculator flows
+// straight into the golden vectors — the Swift port stays pinned to whatever the web does.
 function runDeposit(c) {  // c: {preset,P,contrib,weekly,rate,compound,years,actualYears,edOn,taxOn,psr,tableView}
   globalThis.currentPreset = c.preset;
   el('d-principal').value = String(c.P); el('d-contrib').value = String(c.contrib ?? 0);
@@ -187,7 +193,7 @@ function runDeposit(c) {  // c: {preset,P,contrib,weekly,rate,compound,years,act
   el('d-freq').value = String(c.compound); el('d-years').value = String(c.years);
   el('d-years').dataset.actual = c.actualYears != null ? String(c.actualYears) : '';
   el('d-contrib-freq').value = c.contribFreq ?? 'monthly';
-  el('d-table-view').value = 'yearly';
+  el('d-table-view').value = 'yearly';  // always yearly; the WDS weekly table is UI-only, not part of the parity contract
   el('d-ed-toggle').checked = c.edOn; el('d-tax-toggle').checked = c.taxOn;
   el('d-tin').value = c.psr ? 'tin' : 'notin';
   calcDeposit();
