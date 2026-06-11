@@ -1,6 +1,6 @@
 {
  "meta": {
-  "sourceCommit": "d7398dd5d5781b612308b66696ebdebb3295660f"
+  "sourceCommit": "7425d4edceb11138d4320ccc4a1857c667184399"
  },
  "getED": [
   {
@@ -2499,6 +2499,16 @@
     "csInterest": 0,
     "rateMarkup": -42.49545488981024
    }
+  },
+  {
+   "P": 1000000,
+   "rate": 19,
+   "years": 3,
+   "advEMI": 12,
+   "csAmt": 700000,
+   "csRate": 0,
+   "emi": 36656.02002357245,
+   "result": null
   }
  ],
  "compare": [

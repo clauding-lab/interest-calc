@@ -8,6 +8,11 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const main = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
   .map(m => m[1]).sort((a, b) => b.length - a.length)[0];
 
+// Naive brace counter: it works because none of the 15 extracted functions
+// contain an UNBALANCED brace inside a string/regex literal (verified at v1.0.0).
+// `${...}` template braces stay balanced, so they're fine. If a future edit adds
+// something like a string `'opening {'` to one of these functions, extract() will
+// throw "unbalanced braces" loudly on the next run — fix the source, not this counter.
 function extract(name) {
   const i = main.indexOf(`function ${name}(`);
   if (i < 0) throw new Error(`function ${name} not found`);
@@ -24,7 +29,7 @@ globalThis.currency = 'BDT';
 globalThis.CONFIG = {
   sourceTax: { withReturnProof: 0.10, withoutReturnProof: 0.15 },
   loanProcFeeRate: 0.01,
-  fxTakaPerUsd: 110,
+  fxTakaPerUsd: 110,   // snapshot rate; used only by currency-display helpers, never by financial math
 };
 for (const fn of ['sym','toDisp','fmt','fmtS','grp','num','emiFormula','getED',
                   'buildSchedule','calcEffectiveRate','dscrPMT','dscrIRR','dscrFV',
@@ -75,14 +80,18 @@ for (const c of [
                              interest: r.interest, close: r.close })) });
 }
 
-// Effective rate (EAR) — calcEffectiveRate is pure; null result must be preserved
+// Effective rate (EAR) — calcEffectiveRate is pure. Vectors record the REAL engine
+// output, INCLUDING the null branch (netDisb <= 0). Where a `result` is non-null but
+// the web UI still hides it, that gating lives in the caller, not the engine — the
+// Swift engine should compute the same values and let the UI decide what to show.
 vectors.effectiveRate = [];
 for (const c of [
-  { P: 1000000, rate: 9, years: 10, advEMI: 0, csAmt: 0,      csRate: 0 },   // -> null (gated by caller, but engine must agree)
+  { P: 1000000, rate: 9, years: 10, advEMI: 0, csAmt: 0,      csRate: 0 },   // engine returns a valid EAR (~9.38%); web UI hides it (no advance EMI, no cash security)
   { P: 1000000, rate: 9, years: 10, advEMI: 2, csAmt: 0,      csRate: 0 },
   { P: 1000000, rate: 9, years: 10, advEMI: 0, csAmt: 200000, csRate: 7 },
   { P: 1000000, rate: 9, years: 10, advEMI: 3, csAmt: 300000, csRate: 8.5 },
-  { P: 1000000, rate: 19, years: 3, advEMI: 12, csAmt: 500000, csRate: 0 },  // netDisb<=0 -> null
+  { P: 1000000, rate: 19, years: 3, advEMI: 12, csAmt: 500000, csRate: 0 },  // heavy advance + cash security -> sharply negative effective rate; netDisb stays > 0 (NOT null)
+  { P: 1000000, rate: 19, years: 3, advEMI: 12, csAmt: 700000, csRate: 0 },  // advance EMIs + cash security exceed principal -> netDisb <= 0 -> engine returns null
 ]) {
   const emi = buildSchedule(c.P, c.rate, c.years, 0).emi;
   const r = calcEffectiveRate(c.P, c.rate, c.years, emi, c.advEMI, c.csAmt, c.csRate);
@@ -104,6 +113,7 @@ for (const c of [
   vectors.compare.push({ ...c,
     aFinal: A.vals[A.vals.length-1], bFinal: B.vals[B.vals.length-1],
     aTotalInt: nn(A.totalInt ?? null), bTotalInt: nn(B.totalInt ?? null),
+    // Ties fall to B by design (strict < / >, mirrors the web engine) — do not "fix" to <=.
     winner: c.aType==='loan' ? (A.totalInt < B.totalInt ? 'A' : 'B')
                              : (A.vals[A.vals.length-1] > B.vals[B.vals.length-1] ? 'A' : 'B') });
 }
@@ -149,4 +159,5 @@ vectors.xirr = [
   { cashflows: [-1000000], dates: ['2023-01-01'] },                              // <2 flows -> null
 ].map(c => ({ ...c, rate: nn(xirr(c.cashflows, c.dates.map(D))) }));
 
-writeFileSync(new URL('./golden-vectors.json', import.meta.url), JSON.stringify(vectors, null, 1)); console.log('sections:', Object.keys(vectors).map(k=>`${k}:${Array.isArray(vectors[k])?vectors[k].length:'-'}`).join(' '));
+writeFileSync(new URL('./golden-vectors.json', import.meta.url), JSON.stringify(vectors, null, 1));
+console.log('sections:', Object.keys(vectors).map(k => `${k}:${Array.isArray(vectors[k]) ? vectors[k].length : '-'}`).join(' '));
