@@ -54,7 +54,15 @@ globalThis.fmtBDT  = n => String(n);  // stub
 globalThis.fmtSBDT = n => String(n);  // stub
 globalThis.grp   = n => String(isFinite(n) ? n : 0);  // stub
 
-for (const fn of ['num','formatDateInput','cellVal','cellDate','renderSettleRecv','renderSettlePay','settleUpdateTotals'])
+// Fail LOUD: these are called inside parseSettlementSheet's core path. If one ever fails to
+// extract (e.g. renamed in index.html, or turned into a const arrow), we must crash — NOT
+// silently call an undefined global and emit empty-but-structurally-valid golden vectors.
+for (const fn of ['num','formatDateInput','cellVal','cellDate'])
+  (0, eval)(extract(fn));
+
+// Lenient: display-side helpers only; the no-op fallbacks below cover them. settleUpdateTotals
+// writes display textContent (irrelevant to parse output), so a load failure here is non-fatal.
+for (const fn of ['renderSettleRecv','renderSettlePay','settleUpdateTotals'])
   try { (0, eval)(extract(fn)); } catch (e) { console.warn(`[stub-warn] ${fn}: ${e.message}`); }
 
 globalThis.renderSettleRecv = globalThis.renderSettleRecv || (() => {});
@@ -76,6 +84,8 @@ function writeFixture(name, cells) {
     const m = ref.match(/^([A-Z]+)(\d+)$/); const c = XLSX.utils.decode_col(m[1]), r = +m[2];
     if (r > maxR) maxR = r; if (c > maxC) maxC = c;
   }
+  // maxR is the 1-based row number from the cell ref (e.g. "D14" → 14); encode_range is 0-based,
+  // so the last row index is maxR-1. (Not an off-by-one — do not "fix" to maxR.)
   ws['!ref'] = XLSX.utils.encode_range({ s:{c:0,r:0}, e:{c:maxC, r:maxR-1} });
   const wb = { SheetNames:['Settlement'], Sheets:{ Settlement: ws } };
   XLSX.writeFile(wb, new URL(name, dir).pathname, { bookType:'xlsx', cellDates:false });
@@ -83,6 +93,9 @@ function writeFixture(name, cells) {
 
 const S = v => ({ t:'s', v:String(v) });
 const N = v => ({ t:'n', v });
+// D = a date stored as an Excel serial NUMBER (t:'n') — this is how real .xlsx store dates, and
+// cellDate's numeric branch (XLSX.SSF.parse_date_code) handles it. Do NOT change to t:'d' (that
+// would take cellDate's c.t==='d' string branch and no longer mirror a real workbook).
 const D = serial => ({ t:'n', v:serial });
 const F = (formula, v) => ({ t:'n', f:formula, v });
 
@@ -157,10 +170,12 @@ function runParse(file) {
   };
 }
 
-function nnNum(x){ return (typeof x === 'number' && !Number.isFinite(x)) ? null : x; }
+// num() returns NaN for non-numeric input; map that to null so the JSON vector is serializable
+// (JSON.stringify turns NaN into null anyway, but be explicit) and the Swift side reads it as nil.
+function nanToNull(x){ return (typeof x === 'number' && !Number.isFinite(x)) ? null : x; }
 
 const numCases = ['1,000,000','6,00,000','(1,234)','30,000','(5,000)','', 'abc', '1234.5', '-50']
-  .map(s => ({ in:s, out:nnNum(num(s)) }));
+  .map(s => ({ in:s, out:nanToNull(num(s)) }));
 
 const serialCases = [45306, 45337, 45368, 45399, 45430, 45473, 1, 60, 61]
   .map(s => ({ serial:s, iso:cellDate({ ['Z1']:{ t:'n', v:s } }, 'Z1') }));
