@@ -41,6 +41,7 @@ There is no unit-test suite checked in. Financial changes are verified by extrac
 6. **Escape everything from Excel/user input** into `innerHTML` via the existing `escH()`. The Settlement tab parses files received from third parties.
 7. **Keep it one file.** Do not split `index.html` into modules or introduce a bundler — the no-build, single-file shape is intentional.
 8. **The iOS app (`clauding-lab/incalc-ios`) ports this engine.** Any change to `CONFIG`, `getED`, or calculation behavior requires regenerating `tools/golden-vectors.json` (run `node tools/generate-golden-vectors.mjs`) and updating the Swift engine — see `incalc-ios/AGENTS.md`.
+9. **Settlement Excel parsing is golden-tested too.** Change web `parseSettlementSheet` → regenerate `tools/parse-vectors.json` + fixtures (`node tools/generate-parse-vectors.mjs`) → copy into incalc-ios `Tests/InCalcExcelImportTests/Fixtures/` → mirror in `SettlementSheetParser` → `swift test` green. Fixtures are synthetic-only (never from a real file).
 
 ## Cross-cutting rules
 
