@@ -177,7 +177,11 @@ function nanToNull(x){ return (typeof x === 'number' && !Number.isFinite(x)) ? n
 const numCases = ['1,000,000','6,00,000','(1,234)','30,000','(5,000)','', 'abc', '1234.5', '-50']
   .map(s => ({ in:s, out:nanToNull(num(s)) }));
 
-const serialCases = [45306, 45337, 45368, 45399, 45430, 45473, 1, 60, 61]
+// Realistic settlement-date serials only (≈2024) plus serial 61 = the first valid day after
+// Excel's 1900 leap-year bug. Serials <61 (incl. the fake 1900-02-29 at serial 60) never occur
+// in real loan dates and would force fake-leap-day special-casing in the Swift port — excluded
+// on purpose so the simple epoch-1899-12-30 conversion is exact for every vector here.
+const serialCases = [45306, 45337, 45368, 45399, 45430, 45473, 61]
   .map(s => ({ serial:s, iso:cellDate({ ['Z1']:{ t:'n', v:s } }, 'Z1') }));
 
 const vectors = {

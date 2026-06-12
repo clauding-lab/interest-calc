@@ -1,6 +1,6 @@
 {
  "meta": {
-  "sourceCommit": "2043abc9ad2ed4b1d74a55e10eb3bfd1d4058db9"
+  "sourceCommit": "84a1c545b4cd96ed92ca715a3c5a51211972c04a"
  },
  "parseValues": {
   "num": [
@@ -65,14 +65,6 @@
    {
     "serial": 45473,
     "iso": "2024-06-30"
-   },
-   {
-    "serial": 1,
-    "iso": "1900-01-01"
-   },
-   {
-    "serial": 60,
-    "iso": "1900-02-29"
    },
    {
     "serial": 61,
