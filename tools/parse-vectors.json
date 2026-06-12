@@ -1,0 +1,220 @@
+{
+ "meta": {
+  "sourceCommit": "2043abc9ad2ed4b1d74a55e10eb3bfd1d4058db9"
+ },
+ "parseValues": {
+  "num": [
+   {
+    "in": "1,000,000",
+    "out": 1000000
+   },
+   {
+    "in": "6,00,000",
+    "out": 600000
+   },
+   {
+    "in": "(1,234)",
+    "out": -1234
+   },
+   {
+    "in": "30,000",
+    "out": 30000
+   },
+   {
+    "in": "(5,000)",
+    "out": -5000
+   },
+   {
+    "in": "",
+    "out": null
+   },
+   {
+    "in": "abc",
+    "out": null
+   },
+   {
+    "in": "1234.5",
+    "out": 1234.5
+   },
+   {
+    "in": "-50",
+    "out": -50
+   }
+  ],
+  "serial": [
+   {
+    "serial": 45306,
+    "iso": "2024-01-15"
+   },
+   {
+    "serial": 45337,
+    "iso": "2024-02-15"
+   },
+   {
+    "serial": 45368,
+    "iso": "2024-03-17"
+   },
+   {
+    "serial": 45399,
+    "iso": "2024-04-17"
+   },
+   {
+    "serial": 45430,
+    "iso": "2024-05-18"
+   },
+   {
+    "serial": 45473,
+    "iso": "2024-06-30"
+   },
+   {
+    "serial": 1,
+    "iso": "1900-01-01"
+   },
+   {
+    "serial": 60,
+    "iso": "1900-02-29"
+   },
+   {
+    "serial": 61,
+    "iso": "1900-03-01"
+   }
+  ]
+ },
+ "fixtures": {
+  "clean.xlsx": {
+   "client": "Test Client Ltd",
+   "account": "0123456789",
+   "loanAmt": 1000000,
+   "disbDate": "2024-01-15",
+   "settleDate": "2024-05-18",
+   "receivables": [
+    {
+     "name": "URPA",
+     "receivable": 50000,
+     "waiver": 0
+    },
+    {
+     "name": "Principal Overdue",
+     "receivable": 600000,
+     "waiver": 0
+    },
+    {
+     "name": "Interest Overdue",
+     "receivable": 60000,
+     "waiver": 0
+    },
+    {
+     "name": "Late Payment Interest (LPI)",
+     "receivable": 25000,
+     "waiver": 20000
+    },
+    {
+     "name": "Excise Duty",
+     "receivable": 3000,
+     "waiver": 0
+    },
+    {
+     "name": "Supervision Fees",
+     "receivable": 8000,
+     "waiver": 8000
+    },
+    {
+     "name": "Legal Fee",
+     "receivable": 12000,
+     "waiver": 0
+    }
+   ],
+   "payments": [
+    {
+     "date": "2024-02-15",
+     "amount": 30000
+    },
+    {
+     "date": "2024-03-17",
+     "amount": 30000
+    },
+    {
+     "date": "2024-04-17",
+     "amount": 30000
+    }
+   ]
+  },
+  "no-settlement.xlsx": {
+   "client": "No Settle Co",
+   "account": "0222222222",
+   "loanAmt": 500000,
+   "disbDate": "2024-01-15",
+   "settleDate": "",
+   "receivables": [
+    {
+     "name": "Principal Overdue",
+     "receivable": 300000,
+     "waiver": 0
+    }
+   ],
+   "payments": [
+    {
+     "date": "2024-02-15",
+     "amount": 20000
+    },
+    {
+     "date": "2024-03-17",
+     "amount": 20000
+    }
+   ]
+  },
+  "scattered-blanks.xlsx": {
+   "client": "Blanks Inc",
+   "account": "0333333333",
+   "loanAmt": 800000,
+   "disbDate": "2024-01-15",
+   "settleDate": "",
+   "receivables": [
+    {
+     "name": "Principal Overdue",
+     "receivable": 400000,
+     "waiver": 0
+    }
+   ],
+   "payments": [
+    {
+     "date": "2024-02-15",
+     "amount": 25000
+    },
+    {
+     "date": "2024-05-18",
+     "amount": 25000
+    }
+   ]
+  },
+  "comma-negative.xlsx": {
+   "client": "Comma Corp",
+   "account": "0444444444",
+   "loanAmt": "1,000,000",
+   "disbDate": "2024-01-15",
+   "settleDate": "2024-06-30",
+   "receivables": [
+    {
+     "name": "Principal Overdue",
+     "receivable": 600000,
+     "waiver": 0
+    },
+    {
+     "name": "Reversal",
+     "receivable": -1234,
+     "waiver": 0
+    }
+   ],
+   "payments": [
+    {
+     "date": "2024-02-15",
+     "amount": 30000
+    },
+    {
+     "date": "2024-03-17",
+     "amount": -5000
+    }
+   ]
+  }
+ }
+}
