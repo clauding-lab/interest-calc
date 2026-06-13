@@ -1359,9 +1359,11 @@ function selectTenure(val,el){
 }
 
 // ── EXCISE DUTY SLABS (BDT) ──────────────────────────────────────────────────
-// NBR slabs FY2025-26 (effective 1 Jul 2025) — re-check after every national budget
+// NBR slabs FY2026-27 (effective 1 Jul 2026) — exemption raised ৳3L→৳4L per Budget Speech FY2026-27
+// (customs.gov.bd), verified vs IDLC "Revised Rate of Excise Duty" slide: ONLY the exemption band
+// changed (0–4L = Nil); the ৳150/৳500/…/৳50,000 slabs above are unchanged. Re-check after every budget.
 function getED(balBDT){
-  if(balBDT<=300000) return 0;
+  if(balBDT<=400000) return 0;
   if(balBDT<=500000) return 150;
   if(balBDT<=1000000) return 500;
   if(balBDT<=5000000) return 3000;
