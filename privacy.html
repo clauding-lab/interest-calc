@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>Privacy Policy — InCalc</title>
+<meta name="description" content="InCalc privacy policy: no data collected, no tracking, all calculation runs on-device.">
+<meta name="theme-color" content="#2060b0">
+<meta name="robots" content="index, follow">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f5f0; --surface: #ffffff; --surface2: #eceae5;
+  --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.15);
+  --text: #1a1a18; --muted: #6b6965; --dim: #6b665f;
+  --accent: #2060b0; --accent2: #1a6a9a; --warn: #c04030; --amber: #955a00;
+  /* Self-contained: no webfonts fetched. Mirror the app's family names with
+     robust generic fallbacks so cached PWA fonts are used if present, never fetched. */
+  --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+  --radius: 10px; --radius-lg: 16px;
+}
+html.dark-mode {
+  --bg: #1e2024; --surface: #282a2e; --surface2: #32353a;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+  --text: #edecea; --muted: #b2afa8; --dim: #a5a098;
+  --accent: #60a0f0; --accent2: #50b8e0; --warn: #f07060; --amber: #f0a040;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 300; min-height: 100vh; line-height: 1.65; }
+
+/* HEADER */
+header { padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: blink 2.5s ease-in-out infinite; flex-shrink: 0; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+.logo a { text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; }
+.logo-text { font-family: var(--serif); font-weight: 600; font-size: 1.35rem; letter-spacing: -0.02em; }
+.logo-sub { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-top: -2px; }
+.theme-btn { padding: 5px 14px; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+.theme-btn:hover { border-color: var(--border2); color: var(--text); }
+.theme-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* MAIN */
+main { max-width: 760px; margin: 0 auto; padding: 2.5rem 2rem 1rem; }
+.eyebrow { font-family: var(--mono); font-size: 0.6rem; color: var(--dim); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 0.6rem; }
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem); letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 0.5rem; }
+.effective { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 2rem; }
+
+.lede { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.1rem 1.25rem; margin-bottom: 2rem; }
+.lede p { font-family: var(--serif); font-style: italic; font-size: 1rem; color: var(--text); line-height: 1.55; }
+
+section { margin-bottom: 1.9rem; }
+h2 { font-family: var(--mono); font-size: 0.68rem; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.7rem; padding-bottom: 0.45rem; border-bottom: 1px solid var(--border); }
+p { font-size: 0.92rem; color: var(--muted); margin-bottom: 0.7rem; }
+p:last-child { margin-bottom: 0; }
+strong { color: var(--text); font-weight: 500; }
+ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin: 0.4rem 0 0.7rem; }
+li { font-size: 0.92rem; color: var(--muted); padding-left: 1.2rem; position: relative; }
+li::before { content: '—'; position: absolute; left: 0; color: var(--dim); font-family: var(--mono); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.callout { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1.1rem; }
+.callout p { color: var(--text); margin-bottom: 0; font-size: 0.88rem; }
+.no-collect { background: rgba(200,240,96,0.06); border: 1px solid rgba(200,240,96,0.2); }
+html.dark-mode .no-collect { background: rgba(96,160,240,0.06); border-color: rgba(96,160,240,0.2); }
+
+.contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; }
+.contact-card .label { font-family: var(--mono); font-size: 0.6rem; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.35rem; }
+.contact-card .value { font-family: var(--mono); font-size: 0.9rem; color: var(--text); }
+
+.back-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 0.5rem; font-family: var(--mono); font-size: 0.78rem; color: var(--accent); padding: 0.55rem 1rem; border: 1px solid var(--border); border-radius: 8px; transition: all 0.2s; }
+.back-link:hover { border-color: var(--accent); text-decoration: none; }
+
+/* FOOTER */
+footer { text-align: center; padding: 1.5rem 2rem; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.6rem; color: var(--dim); letter-spacing: 0.05em; margin-top: 2.5rem; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--accent); text-decoration: none; }
+
+@media (max-width: 600px) {
+  header { padding: 1rem 1.25rem; }
+  main { padding: 1.75rem 1.25rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <a href="https://incalc.clauding-lab.com/" aria-label="Back to InCalc app">
+      <div class="logo-dot"></div>
+      <div>
+        <span class="logo-text">InCalc</span>
+        <span class="logo-sub">Compound Interest Suite</span>
+      </div>
+    </a>
+  </div>
+  <button class="theme-btn" type="button" onclick="toggleTheme()" id="theme-toggle" title="Toggle light/dark mode" aria-label="Toggle light/dark mode">
+    <svg id="theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</header>
+
+<main>
+  <p class="eyebrow">Legal</p>
+  <h1>Privacy Policy</h1>
+  <p class="effective">Effective 13 June 2026</p>
+
+  <div class="lede">
+    <p>InCalc is a calculator, not a service. It does not collect, transmit, or store any personal data. Every calculation runs entirely on your own device.</p>
+  </div>
+
+  <section aria-labelledby="not-collected">
+    <h2 id="not-collected">Data Not Collected</h2>
+    <div class="callout no-collect">
+      <p><strong>InCalc collects nothing.</strong> There are no accounts, no sign-ups, no analytics, no advertising, no tracking, no cookies, and no third-party services. We do not see, receive, or store any information about you, the figures you enter, or how you use the app.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="how-it-works">
+    <h2 id="how-it-works">How It Works</h2>
+    <p>InCalc is a self-contained Progressive Web App. All of its logic — deposit interest, loan EMI, DSCR/DBR ratios, settlement IRR, and scenario comparison — executes locally in your browser. Nothing you type leaves your device.</p>
+    <p>When you upload a spreadsheet for the settlement calculator, the file is read and parsed in your browser only. It is never uploaded to any server.</p>
+  </section>
+
+  <section aria-labelledby="what-stored">
+    <h2 id="what-stored">What Is Stored On Your Device</h2>
+    <p>To work offline and remember your preference, InCalc keeps a small amount of data on your device. None of it is transmitted anywhere.</p>
+    <ul>
+      <li><strong>App cache:</strong> the app's files are cached by your browser's service worker so InCalc loads offline.</li>
+      <li><strong>Theme preference:</strong> your light or dark mode choice is saved in your browser's local storage.</li>
+    </ul>
+    <p>You can clear all of this at any time by clearing your browser's site data or uninstalling the app. There is nothing for us to delete on our side, because we never hold a copy.</p>
+  </section>
+
+  <section aria-labelledby="retention">
+    <h2 id="retention">Data Retention</h2>
+    <p>Not applicable. Because no data is ever collected or transmitted, there is nothing for InCalc to retain. On-device cache and your theme preference persist only until you clear them yourself.</p>
+  </section>
+
+  <section aria-labelledby="children">
+    <h2 id="children">Children's Privacy</h2>
+    <p>InCalc is safe for all ages. It collects no personal information from anyone, including children, because it collects no personal information at all.</p>
+  </section>
+
+  <section aria-labelledby="accuracy">
+    <h2 id="accuracy">A Note on Accuracy</h2>
+    <p>InCalc's results are estimates for guidance only, calculated on the basis of the Bangladesh Finance Act FY2025-26 (including excise-duty slabs and source-tax rates in effect for that fiscal year). They are not financial advice. Always confirm figures with your bank and consult a qualified financial advisor before making any financial decision.</p>
+  </section>
+
+  <section aria-labelledby="changes">
+    <h2 id="changes">Changes to This Policy</h2>
+    <p>If this policy ever changes, the revised effective date above will be updated. Because the app collects no data, any change would only ever clarify or reaffirm that position.</p>
+  </section>
+
+  <section aria-labelledby="contact">
+    <h2 id="contact">Contact</h2>
+    <div class="contact-card">
+      <p class="label">Questions about this policy</p>
+      <p class="value"><a href="mailto:adnan.rshd@gmail.com">adnan.rshd@gmail.com</a></p>
+    </div>
+  </section>
+
+  <a class="back-link" href="https://incalc.clauding-lab.com/">&larr; Back to InCalc</a>
+</main>
+
+<footer>
+  InCalc &mdash; <a href="https://incalc.clauding-lab.com/">incalc.clauding-lab.com</a> &mdash; No data collected. Everything runs on your device.
+</footer>
+
+<script>
+function toggleTheme(){
+  const isDark = document.documentElement.classList.toggle('dark-mode');
+  document.getElementById('theme-icon-sun').style.display = isDark ? 'inline' : 'none';
+  document.getElementById('theme-icon-moon').style.display = isDark ? 'none' : 'inline';
+  try { localStorage.setItem('incalc-theme', isDark ? 'dark' : 'light'); } catch (e) {}
+}
+(function(){
+  let saved = null;
+  try { saved = localStorage.getItem('incalc-theme'); } catch (e) {}
+  if (saved === 'dark') {
+    document.documentElement.classList.add('dark-mode');
+    document.getElementById('theme-icon-sun').style.display = 'inline';
+    document.getElementById('theme-icon-moon').style.display = 'none';
+  }
+})();
+</script>
+
+</body>
+</html>
