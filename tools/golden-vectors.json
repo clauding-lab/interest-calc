@@ -1,6 +1,6 @@
 {
  "meta": {
-  "sourceCommit": "97387bece11909676febcf6cf585fb9a491fd535"
+  "sourceCommit": "2444a19fbc910c2a96f69dfdfd1824f1a83685c6"
  },
  "getED": [
   {
@@ -1880,7 +1880,7 @@
   {
    "P": 1000000,
    "rate": 9,
-   "years": 10,
+   "months": 120,
    "extra": 0,
    "emi": 12667.577375024885,
    "totalPaid": 1520109.2850029988,
@@ -1962,7 +1962,7 @@
   {
    "P": 1000000,
    "rate": 9,
-   "years": 10,
+   "months": 120,
    "extra": 5000,
    "emi": 12667.577375024885,
    "totalPaid": 1306453.8035480212,
@@ -2023,7 +2023,7 @@
   {
    "P": 600000,
    "rate": 6,
-   "years": 5,
+   "months": 60,
    "extra": 0,
    "emi": 11599.680917656962,
    "totalPaid": 695980.855059403,
@@ -2070,7 +2070,7 @@
   {
    "P": 600000,
    "rate": 7,
-   "years": 5,
+   "months": 60,
    "extra": 0,
    "emi": 11880.719124209678,
    "totalPaid": 712843.1474525837,
@@ -2117,7 +2117,7 @@
   {
    "P": 4750000,
    "rate": 12.5,
-   "years": 20,
+   "months": 240,
    "extra": 0,
    "emi": 53966.67611143247,
    "totalPaid": 12952002.266743857,
@@ -2269,7 +2269,7 @@
   {
    "P": 4750000,
    "rate": 12.5,
-   "years": 20,
+   "months": 240,
    "extra": 25000,
    "emi": 53966.67611143247,
    "totalPaid": 7506385.910111837,
@@ -2337,7 +2337,7 @@
   {
    "P": 50000,
    "rate": 1,
-   "years": 1,
+   "months": 12,
    "extra": 0,
    "emi": 4189.270577790265,
    "totalPaid": 50271.246933478156,
@@ -2356,7 +2356,7 @@
   {
    "P": 50000000,
    "rate": 25,
-   "years": 30,
+   "months": 360,
    "extra": 100000,
    "emi": 1042289.3180134892,
    "totalPaid": 134588897.25540018,
@@ -2434,13 +2434,164 @@
      "close": 0
     }
    ]
+  },
+  {
+   "P": 1000000,
+   "rate": 9,
+   "months": 18,
+   "extra": 0,
+   "emi": 59597.66427893203,
+   "totalPaid": 1072757.957020785,
+   "totalInterest": 72757.957020785,
+   "totalMonths": 18,
+   "rows": [
+    {
+     "year": 1,
+     "open": 1000000,
+     "principal": 651616.0349214677,
+     "interest": 63555.93642571682,
+     "close": 348383.96507853235
+    },
+    {
+     "year": 2,
+     "open": 348383.96507853235,
+     "principal": 348383.96507852396,
+     "interest": 9202.020595068196,
+     "close": 8.330971468240023e-9
+    }
+   ]
+  },
+  {
+   "P": 1000000,
+   "rate": 9,
+   "months": 30,
+   "extra": 0,
+   "emi": 37348.16075583008,
+   "totalPaid": 1120444.8226749115,
+   "totalInterest": 120444.82267491141,
+   "totalMonths": 30,
+   "rows": [
+    {
+     "year": 1,
+     "open": 1000000,
+     "principal": 373328.4482252273,
+     "interest": 74849.48084473364,
+     "close": 626671.5517747725
+    },
+    {
+     "year": 2,
+     "open": 626671.5517747725,
+     "principal": 408349.2317655582,
+     "interest": 39828.697304402835,
+     "close": 218322.3200092144
+    },
+    {
+     "year": 3,
+     "open": 218322.3200092144,
+     "principal": 218322.32000920558,
+     "interest": 5766.644525774931,
+     "close": 8.818460628390312e-9
+    }
+   ]
+  },
+  {
+   "P": 600000,
+   "rate": 7,
+   "months": 18,
+   "extra": 5000,
+   "emi": 35210.99175457969,
+   "totalPaid": 629589.307484146,
+   "totalInterest": 29589.30748414593,
+   "totalMonths": 16,
+   "rows": [
+    {
+     "year": 1,
+     "open": 600000,
+     "principal": 454944.0963859143,
+     "interest": 27587.804669041994,
+     "close": 145055.90361408572
+    },
+    {
+     "year": 2,
+     "open": 145055.90361408572,
+     "principal": 145055.90361408572,
+     "interest": 2001.5028151039369,
+     "close": 0
+    }
+   ]
+  },
+  {
+   "P": 4750000,
+   "rate": 12.5,
+   "months": 54,
+   "extra": 0,
+   "emi": 115455.28178477967,
+   "totalPaid": 6234585.216378146,
+   "totalInterest": 1484585.2163781456,
+   "totalMonths": 54,
+   "rows": [
+    {
+     "year": 1,
+     "open": 4750000,
+     "principal": 838684.4468908423,
+     "interest": 546778.9345265136,
+     "close": 3911315.553109158
+    },
+    {
+     "year": 2,
+     "open": 3911315.553109158,
+     "principal": 949739.7255381098,
+     "interest": 435723.6558792462,
+     "close": 2961575.8275710475
+    },
+    {
+     "year": 3,
+     "open": 2961575.8275710475,
+     "principal": 1075500.5051173952,
+     "interest": 309962.8762999609,
+     "close": 1886075.3224536523
+    },
+    {
+     "year": 4,
+     "open": 1886075.3224536523,
+     "principal": 1217914.0299226723,
+     "interest": 167549.35149468362,
+     "close": 668161.2925309797
+    },
+    {
+     "year": 5,
+     "open": 668161.2925309797,
+     "principal": 668161.2925309369,
+     "interest": 24570.398177741146,
+     "close": 4.288449417799711e-8
+    }
+   ]
+  },
+  {
+   "P": 50000,
+   "rate": 1,
+   "months": 6,
+   "extra": 0,
+   "emi": 8357.655760711697,
+   "totalPaid": 50145.93456426444,
+   "totalInterest": 145.9345642644376,
+   "totalMonths": 6,
+   "rows": [
+    {
+     "year": 1,
+     "open": 50000,
+     "principal": 50000,
+     "interest": 145.9345642644376,
+     "close": 0
+    }
+   ]
   }
  ],
  "effectiveRate": [
   {
    "P": 1000000,
    "rate": 9,
-   "years": 10,
+   "months": 120,
    "advEMI": 0,
    "csAmt": 0,
    "csRate": 0,
@@ -2455,7 +2606,7 @@
   {
    "P": 1000000,
    "rate": 9,
-   "years": 10,
+   "months": 120,
    "advEMI": 2,
    "csAmt": 0,
    "csRate": 0,
@@ -2470,7 +2621,7 @@
   {
    "P": 1000000,
    "rate": 9,
-   "years": 10,
+   "months": 120,
    "advEMI": 0,
    "csAmt": 200000,
    "csRate": 7,
@@ -2485,7 +2636,7 @@
   {
    "P": 1000000,
    "rate": 9,
-   "years": 10,
+   "months": 120,
    "advEMI": 3,
    "csAmt": 300000,
    "csRate": 8.5,
@@ -2500,7 +2651,7 @@
   {
    "P": 1000000,
    "rate": 19,
-   "years": 3,
+   "months": 36,
    "advEMI": 12,
    "csAmt": 500000,
    "csRate": 0,
@@ -2515,12 +2666,27 @@
   {
    "P": 1000000,
    "rate": 19,
-   "years": 3,
+   "months": 36,
    "advEMI": 12,
    "csAmt": 700000,
    "csRate": 0,
    "emi": 36656.02002357245,
    "result": null
+  },
+  {
+   "P": 1000000,
+   "rate": 9,
+   "months": 30,
+   "advEMI": 2,
+   "csAmt": 200000,
+   "csRate": 7,
+   "emi": 37348.16075583008,
+   "result": {
+    "effectiveRate": 13.844806079917205,
+    "netDisbursement": 725303.6784883399,
+    "csInterest": 38128.138582065934,
+    "rateMarkup": 4.8448060799172055
+   }
   }
  ],
  "compare": [
@@ -2528,11 +2694,11 @@
    "aType": "loan",
    "aAmt": 600000,
    "aRate": 6,
-   "aYears": 5,
+   "aMonths": 60,
    "bType": "loan",
    "bAmt": 600000,
    "bRate": 7,
-   "bYears": 5,
+   "bMonths": 60,
    "aFinal": 0,
    "bFinal": 0,
    "aTotalInt": 95980.85505941778,
@@ -2543,11 +2709,11 @@
    "aType": "loan",
    "aAmt": 50000,
    "aRate": 1,
-   "aYears": 5,
+   "aMonths": 60,
    "bType": "loan",
    "bAmt": 50000,
    "bRate": 15,
-   "bYears": 20,
+   "bMonths": 240,
    "aFinal": 0,
    "bFinal": 0,
    "aTotalInt": 1281.2423363640773,
@@ -2558,11 +2724,11 @@
    "aType": "deposit",
    "aAmt": 500000,
    "aRate": 8,
-   "aYears": 10,
+   "aMonths": 120,
    "bType": "deposit",
    "bAmt": 500000,
    "bRate": 12,
-   "bYears": 10,
+   "bMonths": 120,
    "aFinal": 1109820,
    "bFinal": 1650193,
    "aTotalInt": null,
@@ -2573,15 +2739,45 @@
    "aType": "loan",
    "aAmt": 1000000,
    "aRate": 9,
-   "aYears": 10,
+   "aMonths": 120,
    "bType": "loan",
    "bAmt": 1000000,
    "bRate": 9,
-   "bYears": 10,
+   "bMonths": 120,
    "aFinal": 0,
    "bFinal": 0,
    "aTotalInt": 520109.2850029862,
    "bTotalInt": 520109.2850029862,
+   "winner": "B"
+  },
+  {
+   "aType": "loan",
+   "aAmt": 600000,
+   "aRate": 7,
+   "aMonths": 18,
+   "bType": "loan",
+   "bAmt": 600000,
+   "bRate": 9,
+   "bMonths": 30,
+   "aFinal": 0,
+   "bFinal": 0,
+   "aTotalInt": 33797.851582434494,
+   "bTotalInt": 72266.89360494155,
+   "winner": "A"
+  },
+  {
+   "aType": "deposit",
+   "aAmt": 500000,
+   "aRate": 8,
+   "aMonths": 18,
+   "bType": "deposit",
+   "bAmt": 500000,
+   "bRate": 8,
+   "bMonths": 30,
+   "aFinal": 563524,
+   "bFinal": 610296,
+   "aTotalInt": null,
+   "bTotalInt": null,
    "winner": "B"
   }
  ],
@@ -80171,6 +80367,50 @@
       150,
       3507,
       477416
+     ]
+    ]
+   }
+  },
+  {
+   "input": {
+    "preset": "custom",
+    "P": 100000,
+    "contrib": 0,
+    "rate": 8.5,
+    "compound": 12,
+    "years": 1.5,
+    "edOn": true,
+    "taxOn": true,
+    "psr": true
+   },
+   "output": {
+    "future": 113547,
+    "interest": 13547,
+    "invested": 100000,
+    "eay": 8.839,
+    "ed": 0,
+    "tax": 1346,
+    "net": 112118,
+    "futureStr": "৳1,13,547",
+    "netStr": "৳1,12,118",
+    "rows": [
+     [
+      1,
+      100000,
+      0,
+      8839,
+      0,
+      880,
+      107924
+     ],
+     [
+      2,
+      107924,
+      0,
+      4708,
+      0,
+      466,
+      112118
      ]
     ]
    }

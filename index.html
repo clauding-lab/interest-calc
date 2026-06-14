@@ -487,7 +487,7 @@ html.dark-mode .green-sl { color: #92d050; }
       <!-- TIME HORIZON -->
       <div class="field" id="d-years-wrap">
         <div class="field-header"><span class="field-label">Time horizon</span><span class="field-value" id="d-years-out">—</span></div>
-        <input type="range" id="d-years" aria-label="Time horizon in years" min="1" max="40" step="1" value="15" oninput="this.dataset.actual='';document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));calcDeposit()">
+        <input type="range" id="d-years" aria-label="Time horizon in years" min="1" max="40" step="0.5" value="15" oninput="this.dataset.actual='';document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));calcDeposit()">
       </div>
 
       <!-- COMPOUNDING FREQUENCY -->
@@ -614,7 +614,7 @@ html.dark-mode .green-sl { color: #92d050; }
       </div>
       <div class="field">
         <div class="field-header"><span class="field-label">Loan tenure</span><span class="field-value" id="l-term-out">—</span></div>
-        <input type="range" id="l-term" aria-label="Loan tenure in years" min="1" max="30" step="1" value="10" oninput="calcLoan()">
+        <input type="range" id="l-term" aria-label="Loan tenure in months" min="12" max="360" step="6" value="120" oninput="calcLoan()">
       </div>
       <div class="divider"></div>
       <div class="controls-title" style="color:var(--amber)">Prepayment — optional</div>
@@ -730,8 +730,8 @@ html.dark-mode .green-sl { color: #92d050; }
           <input type="range" id="ca-rate" aria-label="Scenario A annual rate" min="1" max="25" step="0.25" value="8" oninput="calcCompare()">
         </div>
         <div class="field">
-          <div class="field-header"><span class="field-label">Years</span><span class="field-value" id="ca-years-out" style="color:var(--accent)">—</span></div>
-          <input type="range" id="ca-years" aria-label="Scenario A years" min="1" max="30" step="1" value="10" oninput="calcCompare()">
+          <div class="field-header"><span class="field-label">Tenure</span><span class="field-value" id="ca-years-out" style="color:var(--accent)">—</span></div>
+          <input type="range" id="ca-years" aria-label="Scenario A tenure in months" min="12" max="360" step="6" value="120" oninput="calcCompare()">
         </div>
       </div>
     </div>
@@ -754,8 +754,8 @@ html.dark-mode .green-sl { color: #92d050; }
           <input type="range" id="cb-rate" aria-label="Scenario B annual rate" min="1" max="25" step="0.25" value="12" oninput="calcCompare()">
         </div>
         <div class="field">
-          <div class="field-header"><span class="field-label">Years</span><span class="field-value" id="cb-years-out" style="color:var(--accent2)">—</span></div>
-          <input type="range" id="cb-years" aria-label="Scenario B years" min="1" max="30" step="1" value="10" oninput="calcCompare()">
+          <div class="field-header"><span class="field-label">Tenure</span><span class="field-value" id="cb-years-out" style="color:var(--accent2)">—</span></div>
+          <input type="range" id="cb-years" aria-label="Scenario B tenure in months" min="12" max="360" step="6" value="120" oninput="calcCompare()">
         </div>
       </div>
     </div>
@@ -1266,13 +1266,14 @@ function exportPDF(){
 
   const dP=document.getElementById('d-principal').value;
   const dR=document.getElementById('d-rate').value;
-  const dY=document.getElementById('d-years').value;
-  document.getElementById('d-print-sub').textContent=fmt(dP)+' @ '+dR+'% for '+dY+' years';
+  const dYEl=document.getElementById('d-years');
+  const dY=parseFloat(dYEl.dataset.actual)||+dYEl.value;   // honour the tenure-chip override (mirrors calcDeposit)
+  document.getElementById('d-print-sub').textContent=fmt(dP)+' @ '+dR+'% for '+fmtTenor(Math.round(dY*12));
   document.getElementById('d-print-date').textContent='Generated '+now;
   const lP=document.getElementById('l-principal').value;
   const lR=document.getElementById('l-rate').value;
   const lT=document.getElementById('l-term').value;
-  document.getElementById('l-print-sub').textContent=fmt(lP)+' @ '+lR+'% over '+lT+' years';
+  document.getElementById('l-print-sub').textContent=fmt(lP)+' @ '+lR+'% over '+fmtTenor(+lT);
   document.getElementById('l-print-date').textContent='Generated '+now;
   window.print();
 }
@@ -1420,7 +1421,7 @@ function calcDeposit(){
   document.getElementById('d-contrib-out').textContent=fmt(contribAmt);
   if(isWDS) document.getElementById('d-weekly-out').textContent=fmt(weeklyAmt);
   document.getElementById('d-rate-out').textContent=rate.toFixed(2)+'%';
-  const termLabel=years<1?(totalMonths+' month'+(totalMonths>1?'s':'')):years+(years>1?' years':' year');
+  const termLabel=fmtTenor(totalMonths);   // unified 6-month-step readout (shared with the loan tab)
   document.getElementById('d-years-out').textContent=termLabel;
   document.getElementById('d-tax-sub').textContent=(taxRate*100).toFixed(0)+'% on interest';
 
@@ -1670,26 +1671,29 @@ function calcDeposit(){
 }
 
 // ── LOAN + PREPAYMENT ──────────────────────────────────────────────────────────
-function buildSchedule(P,rate,years,extra){
-  const rM=rate/100/12, n=years*12;
+function buildSchedule(P,rate,months,extra){
+  const rM=rate/100/12, n=months;
   const emi=emiFormula(P,rM,n);
-  const rows=[]; let balance=P, totInt=0, totMo=0;
-  for(let y=1;y<=years;y++){
+  // Amortise month-by-month, grouped into year-rows of 12 with a partial final year
+  // (e.g. 18 months -> Yr 1 full, Yr 2 = 6 months). For whole-year tenors (n % 12 === 0)
+  // monthsThisYear is always 12, so this stays bit-identical to the prior years-based loop.
+  const rows=[]; let balance=P, totInt=0, m=0;
+  for(let y=1;m<n;y++){
     if(balance<0.01) break;
-    let yP=0,yI=0; const open=balance;
-    for(let mo=0;mo<12;mo++){
+    let yP=0,yI=0; const open=balance; const monthsThisYear=Math.min(12,n-m);
+    for(let k=0;k<monthsThisYear;k++){
       if(balance<0.01) break;
       const ic=balance*rM;
       const pc=Math.min(emi+(extra||0)-ic, balance);
-      yI+=ic; yP+=pc; totInt+=ic; balance=Math.max(0,balance-pc); totMo++;
+      yI+=ic; yP+=pc; totInt+=ic; balance=Math.max(0,balance-pc); m++;
     }
     rows.push({year:y,open,principal:yP,interest:yI,close:balance});
   }
-  return{emi,rows,totalPaid:P+totInt,totalInterest:totInt,totalMonths:totMo};
+  return{emi,rows,totalPaid:P+totInt,totalInterest:totInt,totalMonths:m};
 }
 
-function calcEffectiveRate(P,nomRate,years,emi,advEMI,csAmt,csAnnualRate){
-  const N=years*12;
+function calcEffectiveRate(P,nomRate,months,emi,advEMI,csAmt,csAnnualRate){
+  const N=months;
   const csMonthlyRate=csAnnualRate/100/12;
   const netDisb=P-(advEMI*emi)-csAmt;
   if(netDisb<=0) return null;
@@ -1719,19 +1723,27 @@ function calcEffectiveRate(P,nomRate,years,emi,advEMI,csAmt,csAnnualRate){
   return{effectiveRate:effAnnual,netDisbursement:netDisb,csInterest,rateMarkup:effAnnual-nomRate};
 }
 
+// Format a tenor given in whole months as "N years" / "N months" / "Ny Mm" — the loan tab's 6-month-step readout.
+function fmtTenor(months){
+  const y=Math.floor(months/12), m=months%12;
+  if(m===0) return y+(y===1?' year':' years');
+  if(y===0) return m+(m===1?' month':' months');
+  return y+'y '+m+'m';
+}
+
 function calcLoan(){
   const P=+document.getElementById('l-principal').value;
   const rate=+document.getElementById('l-rate').value;
-  const years=+document.getElementById('l-term').value;
+  const months=+document.getElementById('l-term').value;
   const extra=+document.getElementById('l-prepay').value;
 
   document.getElementById('l-principal-out').textContent=fmt(P);
   document.getElementById('l-rate-out').textContent=rate.toFixed(2)+'%';
-  document.getElementById('l-term-out').textContent=years+(years>1?' years':' year');
+  document.getElementById('l-term-out').textContent=fmtTenor(months);
   document.getElementById('l-prepay-out').textContent=fmt(extra);
 
-  const base=buildSchedule(P,rate,years,0);
-  const wp=extra>0?buildSchedule(P,rate,years,extra):null;
+  const base=buildSchedule(P,rate,months,0);
+  const wp=extra>0?buildSchedule(P,rate,months,extra):null;
 
   document.getElementById('l-emi').textContent=fmt(base.emi);
   document.getElementById('l-total-interest').textContent=fmt(base.totalInterest);
@@ -1758,7 +1770,7 @@ function calcLoan(){
   document.getElementById('l-bar-il').textContent='Interest '+iPct+'%';
   document.getElementById('l-insight').textContent=wp
     ?`Adding ${fmt(extra)}/mo saves ${fmt(base.totalInterest-wp.totalInterest)} in interest and cuts ${base.totalMonths-wp.totalMonths} months off your loan.`
-    :`At ${rate}%, debt doubles every ~${(72/rate).toFixed(1)} yrs. You pay ${ratio.toFixed(0)}% of the principal in interest over ${years} years.`;
+    :`At ${rate}%, debt doubles every ~${(72/rate).toFixed(1)} yrs. You pay ${ratio.toFixed(0)}% of the principal in interest over ${fmtTenor(months)}.`;
 
   const rows=base.rows;
   const lbls=rows.map(r=>'Yr '+r.year);
@@ -1802,14 +1814,14 @@ function calcLoan(){
   document.getElementById('l-adv-emi-out').textContent=advEMI>0?advEMI+' EMI'+(advEMI>1?'s':''):'0';
   document.getElementById('l-cs-amt-out').textContent=fmt(csAmt);
   document.getElementById('l-cs-rate-out').textContent=csRate.toFixed(2)+'%';
-  document.getElementById('l-cs-tenor-out').textContent=years+(years>1?' years':' year');
+  document.getElementById('l-cs-tenor-out').textContent=fmtTenor(months);
   const csSlider=document.getElementById('l-cs-amt');
   csSlider.max=Math.round(P*0.5);
   if(+csSlider.value>+csSlider.max) csSlider.value=csSlider.max;
 
   const effMetrics=document.getElementById('l-eff-metrics');
   if(advEMI>0||csAmt>0){
-    const eff=calcEffectiveRate(P,rate,years,base.emi,advEMI,csAmt,csRate);
+    const eff=calcEffectiveRate(P,rate,months,base.emi,advEMI,csAmt,csRate);
     if(eff&&eff.effectiveRate>0){
       effMetrics.style.display='';
       document.getElementById('l-eff-rate').textContent=eff.effectiveRate.toFixed(3)+'%';
@@ -1821,11 +1833,13 @@ function calcLoan(){
 }
 
 // ── COMPARE ────────────────────────────────────────────────────────────────────
-function scenarioCalc(type,amt,rate,years){
-  const rM=rate/100/12;
+function scenarioCalc(type,amt,rate,months){
+  // Tenor in MONTHS: year-rows of 12 with a partial final year (mirrors buildSchedule). For whole-year
+  // tenors (months % 12 === 0) this is bit-identical to the prior years-based loop.
+  const rM=rate/100/12, n=months;
   if(type==='deposit'){
-    const lbls=[],vals=[]; let bal=amt;
-    for(let y=1;y<=years;y++){ for(let mo=0;mo<12;mo++) bal+=bal*rM; lbls.push('Yr '+y); vals.push(Math.round(bal)); }
+    const lbls=[],vals=[]; let bal=amt, m=0;
+    for(let y=1;m<n;y++){ const k=Math.min(12,n-m); for(let i=0;i<k;i++){ bal+=bal*rM; m++; } lbls.push('Yr '+y); vals.push(Math.round(bal)); }
     const fin=vals[vals.length-1], eay=(Math.pow(1+rM,12)-1)*100;
     return{lbls,vals,metrics:[
       {l:'Final value',v:fmt(fin),c:'better'},
@@ -1834,9 +1848,9 @@ function scenarioCalc(type,amt,rate,years){
       {l:'Eff. annual yield',v:eay.toFixed(3)+'%',c:''}
     ]};
   } else {
-    const n=years*12; const emi=emiFormula(amt,rM,n);
-    const totalInt=emi*n-amt; const lbls=[],vals=[]; let bal=amt;
-    for(let y=1;y<=years;y++){ for(let mo=0;mo<12;mo++){ const ic=bal*rM; bal=Math.max(0,bal-(emi-ic)); } lbls.push('Yr '+y); vals.push(Math.round(bal)); }
+    const emi=emiFormula(amt,rM,n);
+    const totalInt=emi*n-amt; const lbls=[],vals=[]; let bal=amt, m=0;
+    for(let y=1;m<n;y++){ const k=Math.min(12,n-m); for(let i=0;i<k;i++){ const ic=bal*rM; bal=Math.max(0,bal-(emi-ic)); m++; } lbls.push('Yr '+y); vals.push(Math.round(bal)); }
     return{lbls,vals,totalInt,metrics:[
       {l:'Monthly EMI',v:fmt(emi),c:''},
       {l:'Total interest',v:fmt(totalInt),c:'worse'},
@@ -1853,8 +1867,8 @@ function calcCompare(){
   const bAmt=+document.getElementById('cb-amt').value;
   const aRate=+document.getElementById('ca-rate').value;
   const bRate=+document.getElementById('cb-rate').value;
-  const aYears=+document.getElementById('ca-years').value;
-  const bYears=+document.getElementById('cb-years').value;
+  const aMonths=+document.getElementById('ca-years').value;
+  const bMonths=+document.getElementById('cb-years').value;
 
   document.getElementById('ca-amt-label').textContent=aType==='deposit'?'Deposit amount':'Loan amount';
   document.getElementById('cb-amt-label').textContent=bType==='deposit'?'Deposit amount':'Loan amount';
@@ -1862,11 +1876,11 @@ function calcCompare(){
   document.getElementById('cb-amt-out').textContent=fmt(bAmt);
   document.getElementById('ca-rate-out').textContent=aRate.toFixed(2)+'%';
   document.getElementById('cb-rate-out').textContent=bRate.toFixed(2)+'%';
-  document.getElementById('ca-years-out').textContent=aYears+'y';
-  document.getElementById('cb-years-out').textContent=bYears+'y';
+  document.getElementById('ca-years-out').textContent=fmtTenor(aMonths);
+  document.getElementById('cb-years-out').textContent=fmtTenor(bMonths);
 
-  const A=scenarioCalc(aType,aAmt,aRate,aYears);
-  const B=scenarioCalc(bType,bAmt,bRate,bYears);
+  const A=scenarioCalc(aType,aAmt,aRate,aMonths);
+  const B=scenarioCalc(bType,bAmt,bRate,bMonths);
 
   document.getElementById('cmetrics-a').innerHTML=A.metrics.map(m=>`<div class="c-metric"><span class="c-metric-label">${m.l}</span><span class="c-metric-value ${m.c}">${m.v}</span></div>`).join('');
   document.getElementById('cmetrics-b').innerHTML=B.metrics.map(m=>`<div class="c-metric"><span class="c-metric-label">${m.l}</span><span class="c-metric-value ${m.c}">${m.v}</span></div>`).join('');
@@ -1880,10 +1894,10 @@ function calcCompare(){
     wb.textContent=aW?'A costs less':'B costs less'; wb.className='winner-badge '+(aW?'winner-a':'winner-b');
   } else { wb.textContent='Mixed comparison'; wb.className='winner-badge winner-a'; }
 
-  const maxY=Math.max(aYears,bYears);
-  const allL=Array.from({length:maxY},(_,i)=>'Yr '+(i+1));
-  const pA=[...A.vals,...Array(maxY-A.vals.length).fill(null)];
-  const pB=[...B.vals,...Array(maxY-B.vals.length).fill(null)];
+  const maxRows=Math.max(A.vals.length,B.vals.length);
+  const allL=Array.from({length:maxRows},(_,i)=>'Yr '+(i+1));
+  const pA=[...A.vals,...Array(maxRows-A.vals.length).fill(null)];
+  const pB=[...B.vals,...Array(maxRows-B.vals.length).fill(null)];
 
   if(cChart){ cChart.data.labels=allL; cChart.data.datasets[0].data=pA; cChart.data.datasets[1].data=pB; cChart.update('none'); }
   else{const tc=getChartColors();cChart=new Chart(document.getElementById('c-chart'),{type:'line',data:{labels:allL,datasets:[

@@ -33,7 +33,7 @@ globalThis.CONFIG = {
   loanProcFeeRate: 0.01,
   fxTakaPerUsd: 110,   // snapshot rate; used only by currency-display helpers, never by financial math
 };
-for (const fn of ['sym','toDisp','fmt','fmtS','grp','num','emiFormula','getED',
+for (const fn of ['sym','toDisp','fmt','fmtS','grp','num','emiFormula','getED','fmtTenor',
                   'buildSchedule','calcEffectiveRate','dscrPMT','dscrIRR','dscrFV',
                   'xirr','scenarioCalc']) {
   (0, eval)(extract(fn));            // indirect eval -> defines on globalThis
@@ -63,19 +63,28 @@ vectors.emi.push({ pv: 1000000, r: 0, n: 0, emi: nn(emiFormula(1000000, 0, 0)) }
 vectors.money = [0, 1, 999, 1000, 99999, 100000, 1234568, 12345678, 123456789,
   -95981, -1234568, 2178010, 49108.4, 49108.6].map(n => ({ n, fmt: fmt(n), grp: grp(n) }));
 
-// Loan schedules (buildSchedule is pure)
+// Loan schedules (buildSchedule is pure). Tenor is in MONTHS (6-month-interval feature).
+// The whole-year cases below (months % 12 === 0) MUST regenerate bit-identical to the prior
+// years-based vectors — that's the parity proof for the months refactor. The sub-year cases
+// exercise the new partial-final-year path.
 vectors.loanSchedule = [];
 for (const c of [
-  { P: 1000000, rate: 9,  years: 10, extra: 0 },
-  { P: 1000000, rate: 9,  years: 10, extra: 5000 },
-  { P: 600000,  rate: 6,  years: 5,  extra: 0 },
-  { P: 600000,  rate: 7,  years: 5,  extra: 0 },
-  { P: 4750000, rate: 12.5, years: 20, extra: 0 },
-  { P: 4750000, rate: 12.5, years: 20, extra: 25000 },
-  { P: 50000,   rate: 1,  years: 1,  extra: 0 },
-  { P: 50000000, rate: 25, years: 30, extra: 100000 },
+  { P: 1000000, rate: 9,  months: 120, extra: 0 },
+  { P: 1000000, rate: 9,  months: 120, extra: 5000 },
+  { P: 600000,  rate: 6,  months: 60,  extra: 0 },
+  { P: 600000,  rate: 7,  months: 60,  extra: 0 },
+  { P: 4750000, rate: 12.5, months: 240, extra: 0 },
+  { P: 4750000, rate: 12.5, months: 240, extra: 25000 },
+  { P: 50000,   rate: 1,  months: 12,  extra: 0 },
+  { P: 50000000, rate: 25, months: 360, extra: 100000 },
+  // 6-month-interval cases: partial final year, with and without prepay, plus a sub-UI-min tenor.
+  { P: 1000000, rate: 9,  months: 18,  extra: 0 },     // 1y 6m → Yr 2 is a 6-month partial row
+  { P: 1000000, rate: 9,  months: 30,  extra: 0 },     // 2y 6m
+  { P: 600000,  rate: 7,  months: 18,  extra: 5000 },  // partial final year WITH prepay
+  { P: 4750000, rate: 12.5, months: 54, extra: 0 },    // 4y 6m
+  { P: 50000,   rate: 1,  months: 6,   extra: 0 },     // below the UI's 12-month min — engine robustness
 ]) {
-  const s = buildSchedule(c.P, c.rate, c.years, c.extra);
+  const s = buildSchedule(c.P, c.rate, c.months, c.extra);
   vectors.loanSchedule.push({ ...c, emi: s.emi, totalPaid: s.totalPaid,
     totalInterest: s.totalInterest, totalMonths: s.totalMonths,
     rows: s.rows.map(r => ({ year: r.year, open: r.open, principal: r.principal,
@@ -88,30 +97,35 @@ for (const c of [
 // Swift engine should compute the same values and let the UI decide what to show.
 vectors.effectiveRate = [];
 for (const c of [
-  { P: 1000000, rate: 9, years: 10, advEMI: 0, csAmt: 0,      csRate: 0 },   // engine returns a valid EAR (~9.38%); web UI hides it (no advance EMI, no cash security)
-  { P: 1000000, rate: 9, years: 10, advEMI: 2, csAmt: 0,      csRate: 0 },
-  { P: 1000000, rate: 9, years: 10, advEMI: 0, csAmt: 200000, csRate: 7 },
-  { P: 1000000, rate: 9, years: 10, advEMI: 3, csAmt: 300000, csRate: 8.5 },
-  { P: 1000000, rate: 19, years: 3, advEMI: 12, csAmt: 500000, csRate: 0 },  // heavy advance + cash security -> sharply negative effective rate; netDisb stays > 0 (NOT null)
-  { P: 1000000, rate: 19, years: 3, advEMI: 12, csAmt: 700000, csRate: 0 },  // advance EMIs + cash security exceed principal -> netDisb <= 0 -> engine returns null
+  { P: 1000000, rate: 9, months: 120, advEMI: 0, csAmt: 0,      csRate: 0 },   // engine returns a valid EAR (~9.38%); web UI hides it (no advance EMI, no cash security)
+  { P: 1000000, rate: 9, months: 120, advEMI: 2, csAmt: 0,      csRate: 0 },
+  { P: 1000000, rate: 9, months: 120, advEMI: 0, csAmt: 200000, csRate: 7 },
+  { P: 1000000, rate: 9, months: 120, advEMI: 3, csAmt: 300000, csRate: 8.5 },
+  { P: 1000000, rate: 19, months: 36, advEMI: 12, csAmt: 500000, csRate: 0 },  // heavy advance + cash security -> sharply negative effective rate; netDisb stays > 0 (NOT null)
+  { P: 1000000, rate: 19, months: 36, advEMI: 12, csAmt: 700000, csRate: 0 },  // advance EMIs + cash security exceed principal -> netDisb <= 0 -> engine returns null
+  { P: 1000000, rate: 9, months: 30, advEMI: 2, csAmt: 200000, csRate: 7 },    // 6-month-interval (2y 6m) effective rate over a partial-year tenor
 ]) {
-  const emi = buildSchedule(c.P, c.rate, c.years, 0).emi;
-  const r = calcEffectiveRate(c.P, c.rate, c.years, emi, c.advEMI, c.csAmt, c.csRate);
+  const emi = buildSchedule(c.P, c.rate, c.months, 0).emi;
+  const r = calcEffectiveRate(c.P, c.rate, c.months, emi, c.advEMI, c.csAmt, c.csRate);
   vectors.effectiveRate.push({ ...c, emi, result: r === null ? null : {
     effectiveRate: r.effectiveRate, netDisbursement: r.netDisbursement,
     csInterest: r.csInterest, rateMarkup: r.rateMarkup } });
 }
 
 // Compare — scenarioCalc is pure (needs fmt, already defined); winner is numeric
+// Tenor is in MONTHS (6-month-interval feature). Whole-year cases (months % 12 === 0) stay
+// bit-identical to the prior years-based vectors; the sub-year cases exercise partial final years.
 vectors.compare = [];
 for (const c of [
-  { aType:'loan', aAmt:600000, aRate:6, aYears:5,  bType:'loan', bAmt:600000, bRate:7, bYears:5 },   // historical string-trap case
-  { aType:'loan', aAmt:50000,  aRate:1, aYears:5,  bType:'loan', bAmt:50000,  bRate:15, bYears:20 },
-  { aType:'deposit', aAmt:500000, aRate:8, aYears:10, bType:'deposit', bAmt:500000, bRate:12, bYears:10 },
-  { aType:'loan', aAmt:1000000, aRate:9, aYears:10, bType:'loan', bAmt:1000000, bRate:9, bYears:10 }, // tie
+  { aType:'loan', aAmt:600000, aRate:6, aMonths:60,  bType:'loan', bAmt:600000, bRate:7, bMonths:60 },   // historical string-trap case
+  { aType:'loan', aAmt:50000,  aRate:1, aMonths:60,  bType:'loan', bAmt:50000,  bRate:15, bMonths:240 },
+  { aType:'deposit', aAmt:500000, aRate:8, aMonths:120, bType:'deposit', bAmt:500000, bRate:12, bMonths:120 },
+  { aType:'loan', aAmt:1000000, aRate:9, aMonths:120, bType:'loan', bAmt:1000000, bRate:9, bMonths:120 }, // tie
+  { aType:'loan', aAmt:600000, aRate:7, aMonths:18, bType:'loan', bAmt:600000, bRate:9, bMonths:30 },      // 6-month-interval loan vs loan
+  { aType:'deposit', aAmt:500000, aRate:8, aMonths:18, bType:'deposit', bAmt:500000, bRate:8, bMonths:30 }, // 6-month-interval deposit vs deposit
 ]) {
-  const A = scenarioCalc(c.aType, c.aAmt, c.aRate, c.aYears);
-  const B = scenarioCalc(c.bType, c.bAmt, c.bRate, c.bYears);
+  const A = scenarioCalc(c.aType, c.aAmt, c.aRate, c.aMonths);
+  const B = scenarioCalc(c.bType, c.bAmt, c.bRate, c.bMonths);
   vectors.compare.push({ ...c,
     aFinal: A.vals[A.vals.length-1], bFinal: B.vals[B.vals.length-1],
     aTotalInt: nn(A.totalInt ?? null), bTotalInt: nn(B.totalInt ?? null),
@@ -225,6 +239,7 @@ depositCases.push(
   { preset:'mbs', P:500000, contrib:0, rate:10, compound:12, years:3, edOn:true, taxOn:true, psr:true },
   { preset:'mbs', P:2000000, contrib:0, rate:10, compound:12, years:5, edOn:true, taxOn:true, psr:false },
   { preset:'custom', P:100000, contrib:2000, contribFreq:'weekly', rate:8.5, compound:12, years:3, edOn:true, taxOn:true, psr:true },
+  { preset:'custom', P:100000, contrib:0, rate:8.5, compound:12, years:1.5, edOn:true, taxOn:true, psr:true },   // 6-month-step (18mo) deposit slider value
 );
 for (const c of depositCases) vectors.deposit.push({ input: c, output: runDeposit(c) });
 
