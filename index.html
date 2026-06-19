@@ -623,7 +623,16 @@ html.dark-mode .green-sl { color: #92d050; }
       </div>
       <div class="field">
         <div class="field-header"><span class="field-label">Loan tenure</span><span class="field-value" id="l-term-out">—</span></div>
-        <input type="range" id="l-term" aria-label="Loan tenure in months" min="12" max="360" step="6" value="120" oninput="calcLoan()">
+        <input type="range" id="l-term" aria-label="Loan tenure in months" min="12" max="360" step="3" value="120" oninput="document.querySelectorAll('#l-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));calcLoan()">
+        <div class="tenure-chips" id="l-tenure-chips" style="margin-top:8px">
+          <button class="tenure-chip" onclick="selectLoanTenure(12,this)">1y</button>
+          <button class="tenure-chip" onclick="selectLoanTenure(24,this)">2y</button>
+          <button class="tenure-chip" onclick="selectLoanTenure(36,this)">3y</button>
+          <button class="tenure-chip" onclick="selectLoanTenure(48,this)">4y</button>
+          <button class="tenure-chip" onclick="selectLoanTenure(60,this)">5y</button>
+          <button class="tenure-chip" onclick="selectLoanTenure(96,this)">8y</button>
+          <button class="tenure-chip active" onclick="selectLoanTenure(120,this)">10y</button>
+        </div>
       </div>
       <div class="divider"></div>
       <div class="controls-title" style="color:var(--amber)">Prepayment — optional</div>
@@ -1370,6 +1379,14 @@ function selectTenure(val,el){
   document.getElementById('d-years').value=Math.max(1,Math.floor(val));
   document.getElementById('d-years').dataset.actual=val;
   calcDeposit();
+}
+
+// Loan quick-pick chips: #l-term holds raw months, so set it directly (mirrors selectTenure)
+function selectLoanTenure(months,el){
+  document.querySelectorAll('#l-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('l-term').value=months;
+  calcLoan();
 }
 
 // ── EXCISE DUTY SLABS (BDT) ──────────────────────────────────────────────────
