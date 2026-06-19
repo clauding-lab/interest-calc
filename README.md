@@ -1,8 +1,9 @@
 # InCalc — Banking Calculator Suite
 
-A single-file, offline-capable web app of banking calculators built for Bangladesh banking practice (IDLC / SME context). No build step, no backend, no tracking — open `index.html` and it works.
+A single-file, offline-capable web app of banking calculators built for Bangladesh banking practice (IDLC / SME context). No build step, no backend, no tracking — open `index.html` and it works. Also shipping as a native iOS app.
 
-**Live:** https://clauding-lab.github.io/interest-calc/
+**Live (web):** https://incalc.clauding-lab.com
+**iOS app:** [InCalc BD on the App Store](https://apps.apple.com/app/id6780260202) — native SwiftUI port with the same calculators (iPhone, iOS 17+, free).
 
 ## Calculators
 
