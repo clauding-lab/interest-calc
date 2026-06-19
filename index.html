@@ -497,7 +497,7 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="field" id="d-years-wrap">
         <div class="field-header"><span class="field-label">Time horizon</span><span class="field-value" id="d-years-out">—</span></div>
         <!-- value is MONTHS (3-month grid) -->
-        <input type="range" id="d-years" aria-label="Time horizon in months" min="3" max="480" step="3" value="12" oninput="this.dataset.actual='';document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));calcDeposit()">
+        <input type="range" id="d-years" aria-label="Time horizon in months" min="3" max="480" step="3" value="180" oninput="this.dataset.actual='';document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));calcDeposit()">
       </div>
 
       <!-- COMPOUNDING FREQUENCY -->
