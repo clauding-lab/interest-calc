@@ -1,6 +1,6 @@
 {
  "meta": {
-  "sourceCommit": "2444a19fbc910c2a96f69dfdfd1824f1a83685c6"
+  "sourceCommit": "0a24b1a8c2bf9d362ace87c1bc2912c58d90b6b5"
  },
  "getED": [
   {
@@ -2585,6 +2585,98 @@
      "close": 0
     }
    ]
+  },
+  {
+   "P": 1000000,
+   "rate": 9,
+   "months": 15,
+   "extra": 0,
+   "emi": 70736.3908103658,
+   "totalPaid": 1061045.8621554952,
+   "totalInterest": 61045.86215549515,
+   "totalMonths": 15,
+   "rows": [
+    {
+     "year": 1,
+     "open": 1000000,
+     "principal": 790934.6189107039,
+     "interest": 57902.07081368583,
+     "close": 209065.38108929625
+    },
+    {
+     "year": 2,
+     "open": 209065.38108929625,
+     "principal": 209065.3810892881,
+     "interest": 3143.791341809318,
+     "close": 8.163624443113804e-9
+    }
+   ]
+  },
+  {
+   "P": 1000000,
+   "rate": 9,
+   "months": 27,
+   "extra": 5000,
+   "emi": 41051.75776307828,
+   "totalPaid": 1095630.6121091377,
+   "totalInterest": 95630.61210913764,
+   "totalMonths": 24,
+   "rows": [
+    {
+     "year": 1,
+     "open": 1000000,
+     "principal": 482189.4394023482,
+     "interest": 70431.65375459121,
+     "close": 517810.56059765193
+    },
+    {
+     "year": 2,
+     "open": 517810.56059765193,
+     "principal": 517810.5605976519,
+     "interest": 25198.95835454645,
+     "close": 0
+    }
+   ]
+  },
+  {
+   "P": 4750000,
+   "rate": 12.5,
+   "months": 39,
+   "extra": 0,
+   "emi": 148829.60068385,
+   "totalPaid": 5804354.426670191,
+   "totalInterest": 1054354.4266701909,
+   "totalMonths": 39,
+   "rows": [
+    {
+     "year": 1,
+     "open": 4750000,
+     "principal": 1262936.8014909227,
+     "interest": 523018.4067152775,
+     "close": 3487063.1985090785
+    },
+    {
+     "year": 2,
+     "open": 3487063.1985090785,
+     "principal": 1430169.899616704,
+     "interest": 355785.30858949607,
+     "close": 2056893.2988923737
+    },
+    {
+     "year": 3,
+     "open": 2056893.2988923737,
+     "principal": 1619547.3434260795,
+     "interest": 166407.86478012064,
+     "close": 437345.9554662943
+    },
+    {
+     "year": 4,
+     "open": 437345.9554662943,
+     "principal": 437345.9554662532,
+     "interest": 9142.846585296777,
+     "close": 4.1065504774451256e-8
+    }
+   ]
   }
  ],
  "effectiveRate": [
@@ -2776,6 +2868,36 @@
    "bMonths": 30,
    "aFinal": 563524,
    "bFinal": 610296,
+   "aTotalInt": null,
+   "bTotalInt": null,
+   "winner": "B"
+  },
+  {
+   "aType": "loan",
+   "aAmt": 600000,
+   "aRate": 7,
+   "aMonths": 15,
+   "bType": "loan",
+   "bAmt": 600000,
+   "bRate": 9,
+   "bMonths": 39,
+   "aFinal": 0,
+   "bFinal": 0,
+   "aTotalInt": 28379.955426792032,
+   "bTotalInt": 94253.02876540087,
+   "winner": "A"
+  },
+  {
+   "aType": "deposit",
+   "aAmt": 500000,
+   "aRate": 8,
+   "aMonths": 15,
+   "bType": "deposit",
+   "bAmt": 500000,
+   "bRate": 8,
+   "bMonths": 27,
+   "aFinal": 552402,
+   "bFinal": 598251,
    "aTotalInt": null,
    "bTotalInt": null,
    "winner": "B"
@@ -80414,6 +80536,247 @@
      ]
     ]
    }
+  },
+  {
+   "input": {
+    "preset": "custom",
+    "P": 100000,
+    "contrib": 0,
+    "rate": 8.5,
+    "compound": 12,
+    "years": 1.25,
+    "edOn": true,
+    "taxOn": true,
+    "psr": true
+   },
+   "output": {
+    "future": 111168,
+    "interest": 11168,
+    "invested": 100000,
+    "eay": 8.839,
+    "ed": 0,
+    "tax": 1111,
+    "net": 110001,
+    "futureStr": "৳1,11,168",
+    "netStr": "৳1,10,001",
+    "rows": [
+     [
+      1,
+      100000,
+      0,
+      8839,
+      0,
+      880,
+      107924
+     ],
+     [
+      2,
+      107924,
+      0,
+      2329,
+      0,
+      231,
+      110001
+     ]
+    ]
+   }
+  },
+  {
+   "input": {
+    "preset": "custom",
+    "P": 100000,
+    "contrib": 5000,
+    "rate": 8.5,
+    "compound": 12,
+    "years": 2.25,
+    "edOn": true,
+    "taxOn": true,
+    "psr": true
+   },
+   "output": {
+    "future": 270242,
+    "interest": 35242,
+    "invested": 235000,
+    "eay": 8.839,
+    "ed": 0,
+    "tax": 3496,
+    "net": 266460,
+    "futureStr": "৳2,70,242",
+    "netStr": "৳2,66,460",
+    "rows": [
+     [
+      1,
+      100000,
+      60000,
+      11675,
+      0,
+      1163,
+      170469
+     ],
+     [
+      2,
+      170469,
+      60000,
+      18010,
+      0,
+      1784,
+      246523
+     ],
+     [
+      3,
+      246523,
+      15000,
+      5557,
+      0,
+      549,
+      266460
+     ]
+    ]
+   }
+  },
+  {
+   "input": {
+    "preset": "fd",
+    "P": 100000,
+    "contrib": 0,
+    "rate": 8,
+    "compound": 4,
+    "years": 3.25,
+    "edOn": true,
+    "taxOn": true,
+    "psr": true
+   },
+   "output": {
+    "future": 129361,
+    "interest": 29361,
+    "invested": 100000,
+    "eay": 8.243,
+    "ed": 0,
+    "tax": 2900,
+    "net": 126102,
+    "futureStr": "৳1,29,361",
+    "netStr": "৳1,26,102",
+    "rows": [
+     [
+      1,
+      100000,
+      0,
+      8243,
+      0,
+      822,
+      107397
+     ],
+     [
+      2,
+      107397,
+      0,
+      8923,
+      0,
+      883,
+      115341
+     ],
+     [
+      3,
+      115341,
+      0,
+      9658,
+      0,
+      948,
+      123872
+     ],
+     [
+      4,
+      123872,
+      0,
+      2536,
+      0,
+      248,
+      126102
+     ]
+    ]
+   }
+  }
+ ],
+ "fdMultiplier": [
+  {
+   "P": 100000,
+   "rate": 12,
+   "N": 2,
+   "months": 72,
+   "reached": true,
+   "grossFV": 203279
+  },
+  {
+   "P": 100000,
+   "rate": 12,
+   "N": 3,
+   "months": 114,
+   "reached": true,
+   "grossFV": 307478
+  },
+  {
+   "P": 100000,
+   "rate": 9.5,
+   "N": 2,
+   "months": 90,
+   "reached": true,
+   "grossFV": 202217
+  },
+  {
+   "P": 100000,
+   "rate": 9.5,
+   "N": 3,
+   "months": 141,
+   "reached": true,
+   "grossFV": 301380
+  },
+  {
+   "P": 100000,
+   "rate": 8,
+   "N": 2,
+   "months": 108,
+   "reached": true,
+   "grossFV": 203989
+  },
+  {
+   "P": 100000,
+   "rate": 8,
+   "N": 3,
+   "months": 168,
+   "reached": true,
+   "grossFV": 303117
+  },
+  {
+   "P": 100000,
+   "rate": 1.75,
+   "N": 2,
+   "months": 477,
+   "reached": true,
+   "grossFV": 200192
+  },
+  {
+   "P": 100000,
+   "rate": 1.75,
+   "N": 3,
+   "months": 480,
+   "reached": false,
+   "grossFV": 201068
+  },
+  {
+   "P": 100000,
+   "rate": 1,
+   "N": 2,
+   "months": 480,
+   "reached": false,
+   "grossFV": 149108
+  },
+  {
+   "P": 100000,
+   "rate": 1,
+   "N": 3,
+   "months": 480,
+   "reached": false,
+   "grossFV": 149108
   }
  ],
  "settlementCollection": [

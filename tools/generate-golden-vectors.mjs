@@ -35,7 +35,7 @@ globalThis.CONFIG = {
 };
 for (const fn of ['sym','toDisp','fmt','fmtS','grp','num','emiFormula','getED','fmtTenor',
                   'buildSchedule','calcEffectiveRate','dscrPMT','dscrIRR','dscrFV',
-                  'xirr','scenarioCalc']) {
+                  'xirr','scenarioCalc','fdMultiplierMonths']) {
   (0, eval)(extract(fn));            // indirect eval -> defines on globalThis
 }
 
@@ -83,6 +83,10 @@ for (const c of [
   { P: 600000,  rate: 7,  months: 18,  extra: 5000 },  // partial final year WITH prepay
   { P: 4750000, rate: 12.5, months: 54, extra: 0 },    // 4y 6m
   { P: 50000,   rate: 1,  months: 6,   extra: 0 },     // below the UI's 12-month min — engine robustness
+  // 3-month-interval grid cases: tenors that are off the old 6-month grid (months % 6 !== 0).
+  { P: 1000000, rate: 9,  months: 15,  extra: 0 },     // 1y 3m → new 3-month notch
+  { P: 1000000, rate: 9,  months: 27,  extra: 5000 },  // 2y 3m WITH prepay
+  { P: 4750000, rate: 12.5, months: 39, extra: 0 },    // 3y 3m
 ]) {
   const s = buildSchedule(c.P, c.rate, c.months, c.extra);
   vectors.loanSchedule.push({ ...c, emi: s.emi, totalPaid: s.totalPaid,
@@ -123,6 +127,8 @@ for (const c of [
   { aType:'loan', aAmt:1000000, aRate:9, aMonths:120, bType:'loan', bAmt:1000000, bRate:9, bMonths:120 }, // tie
   { aType:'loan', aAmt:600000, aRate:7, aMonths:18, bType:'loan', bAmt:600000, bRate:9, bMonths:30 },      // 6-month-interval loan vs loan
   { aType:'deposit', aAmt:500000, aRate:8, aMonths:18, bType:'deposit', bAmt:500000, bRate:8, bMonths:30 }, // 6-month-interval deposit vs deposit
+  { aType:'loan', aAmt:600000, aRate:7, aMonths:15, bType:'loan', bAmt:600000, bRate:9, bMonths:39 },      // 3-month-interval loan vs loan (off the old grid)
+  { aType:'deposit', aAmt:500000, aRate:8, aMonths:15, bType:'deposit', bAmt:500000, bRate:8, bMonths:27 }, // 3-month-interval deposit vs deposit
 ]) {
   const A = scenarioCalc(c.aType, c.aAmt, c.aRate, c.aMonths);
   const B = scenarioCalc(c.bType, c.bAmt, c.bRate, c.bMonths);
@@ -204,8 +210,10 @@ function runDeposit(c) {  // c: {preset,P,contrib,weekly,rate,compound,years,act
   globalThis.currentPreset = c.preset;
   el('d-principal').value = String(c.P); el('d-contrib').value = String(c.contrib ?? 0);
   el('d-weekly').value = String(c.weekly ?? 0); el('d-rate').value = String(c.rate);
-  el('d-freq').value = String(c.compound); el('d-years').value = String(c.years);
-  el('d-years').dataset.actual = c.actualYears != null ? String(c.actualYears) : '';
+  el('d-freq').value = String(c.compound);
+  // #d-years now holds MONTHS (3-month grid). Cases are declared in YEARS → convert (×12).
+  el('d-years').value = String(Math.round(c.years * 12));
+  el('d-years').dataset.actual = c.actualYears != null ? String(Math.round(c.actualYears * 12)) : '';
   el('d-contrib-freq').value = c.contribFreq ?? 'monthly';
   el('d-table-view').value = 'yearly';  // always yearly; the WDS weekly table is UI-only, not part of the parity contract
   el('d-ed-toggle').checked = c.edOn; el('d-tax-toggle').checked = c.taxOn;
@@ -240,8 +248,25 @@ depositCases.push(
   { preset:'mbs', P:2000000, contrib:0, rate:10, compound:12, years:5, edOn:true, taxOn:true, psr:false },
   { preset:'custom', P:100000, contrib:2000, contribFreq:'weekly', rate:8.5, compound:12, years:3, edOn:true, taxOn:true, psr:true },
   { preset:'custom', P:100000, contrib:0, rate:8.5, compound:12, years:1.5, edOn:true, taxOn:true, psr:true },   // 6-month-step (18mo) deposit slider value
+  // 3-month-step deposit slider values (15/27/39 months → 1.25/2.25/3.25 years), off the old 6-month grid.
+  { preset:'custom', P:100000, contrib:0,    rate:8.5, compound:12, years:1.25, edOn:true, taxOn:true, psr:true },  // 15mo
+  { preset:'custom', P:100000, contrib:5000, rate:8.5, compound:12, years:2.25, edOn:true, taxOn:true, psr:true },  // 27mo with contributions
+  { preset:'fd',     P:100000, contrib:0,    rate:8,   compound:4,  years:3.25, edOn:true, taxOn:true, psr:true },  // 39mo FD
 );
 for (const c of depositCases) vectors.deposit.push({ input: c, output: runDeposit(c) });
+
+// FD "double/triple your money" solver — fdMultiplierMonths is pure (extracted above).
+// For a fixed principal P, find the tenor (snapped UP to the 3-month grid, capped at 480mo)
+// that reaches N× gross maturity. grossFV is the exact closed-form FV on that grid (quarterly
+// compounding at rate/4 per quarter = rate/400 as a fraction), matching the deposit FV display.
+const FD_MULT_P = 100000;
+vectors.fdMultiplier = [];
+for (const rate of [12, 9.5, 8, 1.75, 1])
+  for (const N of [2, 3]) {
+    const { months, reached } = fdMultiplierMonths(rate, N);
+    const grossFV = Math.round(FD_MULT_P * Math.pow(1 + rate / 400, months / 3));
+    vectors.fdMultiplier.push({ P: FD_MULT_P, rate, N, months, reached, grossFV });
+  }
 
 // ---- Settlement collection-for-IRR vectors ----
 (0, eval)(extract('settleUpdateTotals'));
