@@ -455,6 +455,12 @@ html.dark-mode .green-sl { color: #92d050; }
       <div class="field" id="d-tenure-chips-wrap" style="display:none">
         <div class="field-header"><span class="field-label">Select tenor</span></div>
         <div class="tenure-chips" id="d-tenure-chips"></div>
+        <!-- FD doubling-time solver chips (FD product only) -->
+        <div class="tenure-chips" id="d-mult-chips" style="display:none;margin-top:6px">
+          <button class="tenure-chip" id="d-mult-2x" onclick="selectFdMultiplier(2,this)">2&times;</button>
+          <button class="tenure-chip" id="d-mult-3x" onclick="selectFdMultiplier(3,this)">3&times;</button>
+        </div>
+        <div id="d-mult-note" style="display:none;margin-top:6px;font-family:var(--mono);font-size:0.62rem;color:var(--muted)"></div>
       </div>
 
       <div class="divider"></div>
@@ -490,14 +496,14 @@ html.dark-mode .green-sl { color: #92d050; }
       <!-- ANNUAL RATE -->
       <div class="field">
         <div class="field-header"><span class="field-label">Annual interest rate</span><span class="field-value" id="d-rate-out">—</span></div>
-        <input type="range" id="d-rate" aria-label="Annual interest rate" min="1" max="20" step="0.25" value="8.5" oninput="calcDeposit()">
+        <input type="range" id="d-rate" aria-label="Annual interest rate" min="1" max="20" step="0.25" value="8.5" oninput="onDepositRateChange()">
       </div>
 
       <!-- TIME HORIZON -->
       <div class="field" id="d-years-wrap">
         <div class="field-header"><span class="field-label">Time horizon</span><span class="field-value" id="d-years-out">—</span></div>
         <!-- value is MONTHS (3-month grid) -->
-        <input type="range" id="d-years" aria-label="Time horizon in months" min="3" max="480" step="3" value="180" oninput="this.dataset.actual='';document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));calcDeposit()">
+        <input type="range" id="d-years" aria-label="Time horizon in months" min="3" max="480" step="3" value="180" oninput="this.dataset.actual='';document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));clearFdMultiplier();calcDeposit()">
       </div>
 
       <!-- COMPOUNDING FREQUENCY -->
@@ -1310,10 +1316,12 @@ function setPreset(p){
   const show=(id,v)=>{document.getElementById(id).style.display=v?'':'none';};
   // Clear any tenure-chip override from a previous preset (stale value = wrong tenor)
   document.getElementById('d-years').dataset.actual='';
+  clearFdMultiplier();   // leaving/entering any preset drops sticky FD multiplier state
   // Reset visibility
   show('d-principal-wrap',true); show('d-contrib-wrap',true); show('d-weekly-wrap',false);
   show('d-freq-wrap',true); show('d-compound-wrap',true); show('d-years-wrap',true);
   show('d-tenure-chips-wrap',false); show('d-monthly-payout-metric',false); show('d-annual-deposit-metric',false);
+  show('d-mult-chips',false);   // 2×/3× solver chips are FD-only
   document.getElementById('d-contrib-label').textContent='Monthly contribution';
 
   if(p==='fd'){
@@ -1325,6 +1333,7 @@ function setPreset(p){
     document.getElementById('d-rate').value=9.5;
     document.getElementById('d-years').value=12;
     buildTenureChips([{l:'3m',v:3},{l:'6m',v:6},{l:'1y',v:12},{l:'2y',v:24},{l:'3y',v:36}],12);
+    show('d-mult-chips',true);   // FD-only doubling-time solver chips
   } else if(p==='dps'){
     document.getElementById('d-principal').value=0; show('d-principal-wrap',false);
     document.getElementById('d-contrib').value=5000;
@@ -1374,12 +1383,67 @@ function buildTenureChips(options, defaultVal){
 }
 
 function selectTenure(months,el){
+  clearFdMultiplier();   // a term chip wins; only one of {2×,3×,term chip} active
   document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
   // Slider value is months (3-month grid); chips carry whole months on the grid.
   document.getElementById('d-years').value=months;
   document.getElementById('d-years').dataset.actual=months;
   calcDeposit();
+}
+
+// ── FD doubling-time solver ──────────────────────────────────────────────────
+// Solve for the FD tenor (on the 3-month quarterly grid) where gross maturity
+// reaches N× the principal. Round quarters UP so the result is always >= N×.
+// FD gross FV = P*(1+rate/400)^(months/3); cap at 480 months (40y).
+function fdMultiplierMonths(rate, N){
+  if(rate<=0) return {months:480, reached:false};
+  const q=Math.ceil(Math.log(N)/Math.log(1+rate/400));   // quarters, round UP -> reach >= N×
+  const m=3*q;
+  return m>480 ? {months:480, reached:false} : {months:m, reached:true};
+}
+
+let fdActiveMult=null;   // null | 2 | 3 — sticky FD multiplier selection
+
+// Tap a 2×/3× chip: solve at the current rate, snap the tenor, stay active.
+function selectFdMultiplier(N, el){
+  fdActiveMult=N;
+  const currentRate=+document.getElementById('d-rate').value;
+  const {months, reached}=fdMultiplierMonths(currentRate, N);
+  // Clear term chips — only one of {2×,3×,term chip} active at a time.
+  document.querySelectorAll('#d-tenure-chips .tenure-chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('d-mult-2x').classList.toggle('active', N===2);
+  document.getElementById('d-mult-3x').classList.toggle('active', N===3);
+  const note=document.getElementById('d-mult-note');
+  if(reached){
+    note.style.display='none'; note.textContent='';
+  } else {
+    note.style.display=''; note.textContent="Can't reach "+N+"× at this rate (max 40y)";
+  }
+  document.getElementById('d-years').value=months;
+  document.getElementById('d-years').dataset.actual=months;
+  calcDeposit();
+}
+
+// Rate slider handler: if a sticky FD multiplier is active, re-solve and move the
+// tenor to the new doubling time for the live rate, then recompute.
+function onDepositRateChange(){
+  if(fdActiveMult && currentPreset==='fd'){
+    const N=fdActiveMult;
+    selectFdMultiplier(N, document.getElementById('d-mult-'+N+'x'));   // re-solves + calcDeposit()
+  } else {
+    calcDeposit();
+  }
+}
+
+// Drop sticky FD multiplier state (manual slider drag, term-chip tap, leaving FD).
+function clearFdMultiplier(){
+  fdActiveMult=null;
+  const c2=document.getElementById('d-mult-2x'), c3=document.getElementById('d-mult-3x');
+  if(c2) c2.classList.remove('active');
+  if(c3) c3.classList.remove('active');
+  const note=document.getElementById('d-mult-note');
+  if(note){ note.style.display='none'; note.textContent=''; }
 }
 
 // Loan quick-pick chips: #l-term holds raw months, so set it directly (mirrors selectTenure)
