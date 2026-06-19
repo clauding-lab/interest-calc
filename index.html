@@ -264,6 +264,13 @@ td.amber-c { color: var(--amber); }
 footer { text-align: center; padding: 1.5rem 2rem; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.6rem; color: var(--dim); letter-spacing: 0.05em; margin-top: 2rem; }
 footer a { color: var(--muted); text-decoration: none; }
 footer a:hover { color: var(--accent); }
+/* App Store call-to-action — official Apple badge, swaps black→white in dark theme */
+.app-cta { display: flex; flex-direction: column; align-items: center; gap: 0.55rem; margin-bottom: 1.1rem; }
+.app-cta-label { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.appstore-badge { display: inline-block; width: 132px; height: 44px; background: url('./appstore-badge-black.svg') center / contain no-repeat; transition: transform 200ms ease, opacity 200ms ease; }
+.appstore-badge:hover { transform: translateY(-1px); opacity: 0.85; }
+.dark-mode .appstore-badge { background-image: url('./appstore-badge-white.svg'); }
+@media (prefers-reduced-motion: reduce) { .appstore-badge { transition: none; } .appstore-badge:hover { transform: none; } }
 
 /* DSCR/DBR */
 .dscr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; }
@@ -1128,6 +1135,10 @@ html.dark-mode .green-sl { color: #92d050; }
 </div>
 
 <footer>
+  <div class="app-cta">
+    <span class="app-cta-label">Now on iPhone</span>
+    <a class="appstore-badge" href="https://apps.apple.com/app/id6780260202" target="_blank" rel="noopener" aria-label="Download InCalc BD on the App Store"></a>
+  </div>
   InCalc &mdash; <a href="https://github.com/clauding-lab" target="_blank" rel="noopener">clauding-lab</a> &mdash; Calculations are illustrative. Consult a qualified financial advisor before making financial decisions.
 </footer>
 

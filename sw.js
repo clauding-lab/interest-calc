@@ -1,4 +1,4 @@
-const CACHE_NAME = 'incalc-v6';
+const CACHE_NAME = 'incalc-v7';
 
 // Same-origin app shell — must cache for offline to work at all.
 const CORE = [
@@ -6,7 +6,9 @@ const CORE = [
   './index.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './appstore-badge-black.svg',
+  './appstore-badge-white.svg'
 ];
 // Cross-origin CDN assets — best-effort; a single unreachable CDN must not abort install.
 const CDN = [
