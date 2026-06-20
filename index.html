@@ -1472,8 +1472,11 @@ function calcDeposit(){
   const isWDS=(currentPreset==='wds');
   const isFD=(currentPreset==='fd');
 
-  // Read inputs
-  const P=+document.getElementById('d-principal').value;
+  // Read inputs. DPS/WDS are pure recurring schemes with NO starting principal — force P=0 for them
+  // (the principal field is hidden for these presets, and a range input clamps a 0 up to its min=10000,
+  // which would otherwise inject a phantom Tk 10,000 lump sum). The golden-vector generator already feeds
+  // P=0 here, so this only corrects the live UI; it leaves every vector bit-identical.
+  const P=(currentPreset==='dps'||currentPreset==='wds')?0:+document.getElementById('d-principal').value;
   let contribAmt=isWDS?0:+document.getElementById('d-contrib').value;
   const weeklyAmt=isWDS?+document.getElementById('d-weekly').value:0;
   const rate=+document.getElementById('d-rate').value;

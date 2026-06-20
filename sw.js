@@ -1,4 +1,4 @@
-const CACHE_NAME = 'incalc-v12';
+const CACHE_NAME = 'incalc-v13';
 
 // Same-origin app shell — must cache for offline to work at all.
 const CORE = [
