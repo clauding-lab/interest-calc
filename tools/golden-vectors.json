@@ -1,6 +1,6 @@
 {
  "meta": {
-  "sourceCommit": "8652e2b67c342648858ccbfdd38e1b9cc228fbed"
+  "sourceCommit": "c2e8135382a63a2b5282efef54d4b543cd56d068"
  },
  "getED": [
   {
@@ -80033,7 +80033,7 @@
     "P": 100000,
     "contrib": 0,
     "rate": 9.5,
-    "compound": 4,
+    "compound": 1,
     "years": 1,
     "actualYears": 0.25,
     "edOn": true,
@@ -80044,7 +80044,7 @@
     "future": 102375,
     "interest": 2375,
     "invested": 100000,
-    "eay": 9.844,
+    "eay": 9.5,
     "ed": 0,
     "tax": 238,
     "net": 102138,
@@ -80069,67 +80069,67 @@
     "P": 3000000,
     "contrib": 0,
     "rate": 8,
-    "compound": 4,
+    "compound": 1,
     "years": 5,
     "edOn": true,
     "taxOn": true,
     "psr": true
    },
    "output": {
-    "future": 4457842,
-    "interest": 1457842,
+    "future": 4407984,
+    "interest": 1407984,
     "invested": 3000000,
-    "eay": 8.243,
+    "eay": 8,
     "ed": 15000,
-    "tax": 142650,
-    "net": 4268854,
-    "futureStr": "৳44,57,842",
-    "netStr": "৳42,68,854",
+    "tax": 138312,
+    "net": 4229805,
+    "futureStr": "৳44,07,984",
+    "netStr": "৳42,29,805",
     "rows": [
      [
       1,
       3000000,
       0,
-      247296,
+      240000,
       3000,
-      24656,
-      3218902
+      24000,
+      3213000
      ],
      [
       2,
-      3218902,
+      3213000,
       0,
-      267682,
+      259200,
       3000,
-      26455,
-      3453996
+      25704,
+      3441336
      ],
      [
       3,
-      3453996,
+      3441336,
       0,
-      289747,
+      279936,
       3000,
-      28387,
-      3706479
+      27531,
+      3686112
      ],
      [
       4,
-      3706479,
+      3686112,
       0,
-      313632,
+      302331,
       3000,
-      30462,
-      3977638
+      29489,
+      3948512
      ],
      [
       5,
-      3977638,
+      3948512,
       0,
-      339485,
+      326517,
       3000,
-      32691,
-      4268854
+      31588,
+      4229805
      ]
     ]
    }
@@ -80140,40 +80140,238 @@
     "P": 100000,
     "contrib": 0,
     "rate": 9.5,
-    "compound": 4,
+    "compound": 1,
     "years": 2,
     "edOn": true,
     "taxOn": true,
     "psr": true
    },
    "output": {
-    "future": 120657,
-    "interest": 20657,
+    "future": 119903,
+    "interest": 19903,
     "invested": 100000,
-    "eay": 9.844,
+    "eay": 9.5,
     "ed": 0,
-    "tax": 2048,
-    "net": 118435,
-    "futureStr": "৳1,20,657",
-    "netStr": "৳1,18,435",
+    "tax": 1981,
+    "net": 117831,
+    "futureStr": "৳1,19,903",
+    "netStr": "৳1,17,831",
     "rows": [
      [
       1,
       100000,
       0,
-      9844,
+      9500,
       0,
-      981,
-      108828
+      950,
+      108550
      ],
      [
       2,
-      108828,
+      108550,
       0,
-      10813,
+      10403,
       0,
-      1067,
-      118435
+      1031,
+      117831
+     ]
+    ]
+   }
+  },
+  {
+   "input": {
+    "preset": "fd",
+    "P": 100000,
+    "contrib": 0,
+    "rate": 10,
+    "compound": 1,
+    "years": 1,
+    "actualYears": 0.25,
+    "edOn": true,
+    "taxOn": true,
+    "psr": true
+   },
+   "output": {
+    "future": 102500,
+    "interest": 2500,
+    "invested": 100000,
+    "eay": 10,
+    "ed": 0,
+    "tax": 250,
+    "net": 102250,
+    "futureStr": "৳1,02,500",
+    "netStr": "৳1,02,250",
+    "rows": [
+     [
+      1,
+      100000,
+      0,
+      2500,
+      0,
+      250,
+      102250
+     ]
+    ]
+   }
+  },
+  {
+   "input": {
+    "preset": "fd",
+    "P": 100000,
+    "contrib": 0,
+    "rate": 10,
+    "compound": 1,
+    "years": 1,
+    "actualYears": 0.5,
+    "edOn": true,
+    "taxOn": true,
+    "psr": true
+   },
+   "output": {
+    "future": 105000,
+    "interest": 5000,
+    "invested": 100000,
+    "eay": 10,
+    "ed": 0,
+    "tax": 500,
+    "net": 104500,
+    "futureStr": "৳1,05,000",
+    "netStr": "৳1,04,500",
+    "rows": [
+     [
+      1,
+      100000,
+      0,
+      5000,
+      0,
+      500,
+      104500
+     ]
+    ]
+   }
+  },
+  {
+   "input": {
+    "preset": "fd",
+    "P": 100000,
+    "contrib": 0,
+    "rate": 10,
+    "compound": 1,
+    "years": 1,
+    "actualYears": 1,
+    "edOn": true,
+    "taxOn": true,
+    "psr": true
+   },
+   "output": {
+    "future": 110000,
+    "interest": 10000,
+    "invested": 100000,
+    "eay": 10,
+    "ed": 0,
+    "tax": 1000,
+    "net": 109000,
+    "futureStr": "৳1,10,000",
+    "netStr": "৳1,09,000",
+    "rows": [
+     [
+      1,
+      100000,
+      0,
+      10000,
+      0,
+      1000,
+      109000
+     ]
+    ]
+   }
+  },
+  {
+   "input": {
+    "preset": "fd",
+    "P": 100000,
+    "contrib": 0,
+    "rate": 10,
+    "compound": 1,
+    "years": 1,
+    "actualYears": 1.25,
+    "edOn": true,
+    "taxOn": true,
+    "psr": true
+   },
+   "output": {
+    "future": 112750,
+    "interest": 12750,
+    "invested": 100000,
+    "eay": 10,
+    "ed": 0,
+    "tax": 1273,
+    "net": 111453,
+    "futureStr": "৳1,12,750",
+    "netStr": "৳1,11,453",
+    "rows": [
+     [
+      1,
+      100000,
+      0,
+      10000,
+      0,
+      1000,
+      109000
+     ],
+     [
+      2,
+      109000,
+      0,
+      2750,
+      0,
+      273,
+      111453
+     ]
+    ]
+   }
+  },
+  {
+   "input": {
+    "preset": "fd",
+    "P": 100000,
+    "contrib": 0,
+    "rate": 10,
+    "compound": 1,
+    "years": 1,
+    "actualYears": 2,
+    "edOn": true,
+    "taxOn": true,
+    "psr": true
+   },
+   "output": {
+    "future": 121000,
+    "interest": 21000,
+    "invested": 100000,
+    "eay": 10,
+    "ed": 0,
+    "tax": 2090,
+    "net": 118810,
+    "futureStr": "৳1,21,000",
+    "netStr": "৳1,18,810",
+    "rows": [
+     [
+      1,
+      100000,
+      0,
+      10000,
+      0,
+      1000,
+      109000
+     ],
+     [
+      2,
+      109000,
+      0,
+      11000,
+      0,
+      1090,
+      118810
      ]
     ]
    }
@@ -80184,67 +80382,67 @@
     "P": 0,
     "contrib": 5000,
     "rate": 11,
-    "compound": 12,
+    "compound": 1,
     "years": 5,
     "edOn": true,
     "taxOn": true,
     "psr": true
    },
    "output": {
-    "future": 401235,
-    "interest": 101235,
+    "future": 414772,
+    "interest": 114772,
     "invested": 300000,
-    "eay": 11.572,
+    "eay": 11,
     "ed": 150,
-    "tax": 9928,
-    "net": 389200,
-    "futureStr": "৳4,01,235",
-    "netStr": "৳3,89,200",
+    "tax": 11308,
+    "net": 401620,
+    "futureStr": "৳4,14,772",
+    "netStr": "৳4,01,620",
     "rows": [
      [
       1,
       0,
       60000,
-      3698,
+      6600,
       0,
-      369,
-      63317
+      660,
+      65940
      ],
      [
       2,
-      63317,
+      65940,
       60000,
-      11069,
+      13926,
       0,
-      1098,
-      133194
+      1385,
+      138408
      ],
      [
       3,
-      133194,
+      138408,
       60000,
-      19293,
+      22058,
       0,
-      1902,
-      210313
+      2182,
+      218050
      ],
      [
       4,
-      210313,
+      218050,
       60000,
-      28469,
+      31084,
       0,
-      2790,
-      295422
+      3059,
+      305577
      ],
      [
       5,
-      295422,
+      305577,
       60000,
-      38706,
+      41103,
       150,
-      3770,
-      389200
+      4021,
+      401620
      ]
     ]
    }
@@ -80255,7 +80453,7 @@
     "P": 0,
     "weekly": 500,
     "rate": 10.5,
-    "compound": 12,
+    "compound": 1,
     "years": 1,
     "actualYears": 1,
     "contribFreq": "weekly",
@@ -80264,24 +80462,24 @@
     "psr": true
    },
    "output": {
-    "future": 27546,
-    "interest": 1546,
+    "future": 28730,
+    "interest": 2730,
     "invested": 26000,
-    "eay": 11.02,
+    "eay": 10.5,
     "ed": 0,
-    "tax": 154,
-    "net": 27387,
-    "futureStr": "৳27,546",
-    "netStr": "৳27,387",
+    "tax": 273,
+    "net": 28457,
+    "futureStr": "৳28,730",
+    "netStr": "৳28,457",
     "rows": [
      [
       1,
       0,
       26000,
-      1546,
+      2730,
       0,
-      154,
-      27387
+      273,
+      28457
      ]
     ]
    }
@@ -80292,7 +80490,7 @@
     "P": 0,
     "weekly": 2000,
     "rate": 10.5,
-    "compound": 12,
+    "compound": 1,
     "years": 1,
     "actualYears": 0.5,
     "contribFreq": "weekly",
@@ -80301,24 +80499,24 @@
     "psr": false
    },
    "output": {
-    "future": 53652,
-    "interest": 1652,
+    "future": 54730,
+    "interest": 2730,
     "invested": 52000,
-    "eay": 11.02,
+    "eay": 10.5,
     "ed": 0,
-    "tax": 247,
-    "net": 53401,
-    "futureStr": "৳53,652",
-    "netStr": "৳53,401",
+    "tax": 410,
+    "net": 54321,
+    "futureStr": "৳54,730",
+    "netStr": "৳54,321",
     "rows": [
      [
       1,
       0,
       52000,
-      1652,
+      2730,
       0,
-      247,
-      53401
+      410,
+      54321
      ]
     ]
    }
@@ -80329,7 +80527,7 @@
     "P": 500000,
     "contrib": 0,
     "rate": 10,
-    "compound": 12,
+    "compound": 1,
     "years": 3,
     "edOn": true,
     "taxOn": true,
@@ -80379,7 +80577,7 @@
     "P": 2000000,
     "contrib": 0,
     "rate": 10,
-    "compound": 12,
+    "compound": 1,
     "years": 5,
     "edOn": true,
     "taxOn": true,
@@ -80702,57 +80900,57 @@
    "P": 100000,
    "rate": 12,
    "N": 2,
-   "months": 72,
+   "months": 75,
    "reached": true,
-   "grossFV": 203279
+   "grossFV": 203304
   },
   {
    "P": 100000,
    "rate": 12,
    "N": 3,
-   "months": 114,
+   "months": 117,
    "reached": true,
-   "grossFV": 307478
+   "grossFV": 302266
   },
   {
    "P": 100000,
    "rate": 9.5,
    "N": 2,
-   "months": 90,
+   "months": 93,
    "reached": true,
-   "grossFV": 202217
+   "grossFV": 202204
   },
   {
    "P": 100000,
    "rate": 9.5,
    "N": 3,
-   "months": 141,
+   "months": 147,
    "reached": true,
-   "grossFV": 301380
+   "grossFV": 304203
   },
   {
    "P": 100000,
    "rate": 8,
    "N": 2,
-   "months": 108,
+   "months": 111,
    "reached": true,
-   "grossFV": 203989
+   "grossFV": 203898
   },
   {
    "P": 100000,
    "rate": 8,
    "N": 3,
-   "months": 168,
+   "months": 174,
    "reached": true,
-   "grossFV": 303117
+   "grossFV": 305468
   },
   {
    "P": 100000,
    "rate": 1.75,
    "N": 2,
-   "months": 477,
+   "months": 480,
    "reached": true,
-   "grossFV": 200192
+   "grossFV": 200160
   },
   {
    "P": 100000,
@@ -80760,7 +80958,7 @@
    "N": 3,
    "months": 480,
    "reached": false,
-   "grossFV": 201068
+   "grossFV": 200160
   },
   {
    "P": 100000,
@@ -80768,7 +80966,7 @@
    "N": 2,
    "months": 480,
    "reached": false,
-   "grossFV": 149108
+   "grossFV": 148886
   },
   {
    "P": 100000,
@@ -80776,7 +80974,7 @@
    "N": 3,
    "months": 480,
    "reached": false,
-   "grossFV": 149108
+   "grossFV": 148886
   }
  ],
  "settlementCollection": [

@@ -236,16 +236,26 @@ for (const P of [0, 100000, 1000000]) for (const contrib of [0, 5000, 50000])
   for (const rate of [1, 8.5, 12, 20]) for (const compound of [12, 4, 2, 1])
     for (const years of [1, 5, 15]) for (const psr of [true, false])
       depositCases.push({ preset:'custom', P, contrib, rate, compound, years, edOn:true, taxOn:true, psr });
-// Presets + fractional tenors + toggle-off cases
+// Presets + fractional tenors + toggle-off cases.
+// fd/dps/wds/mbs now compound ANNUALLY (compound:1) — matches setPreset() defaults
+// (deposit engine credits interest pro-rated by actual months/weeks elapsed).
 depositCases.push(
-  { preset:'fd',  P:100000, contrib:0, rate:9.5,  compound:4,  years:1, actualYears:0.25, edOn:true,  taxOn:true,  psr:true },
-  { preset:'fd',  P:3000000, contrib:0, rate:8,   compound:4,  years:5, edOn:true,  taxOn:true,  psr:true },
-  { preset:'fd',  P:100000, contrib:0, rate:9.5,  compound:4,  years:2, edOn:true, taxOn:true, psr:true },   // ED+tax mandatory now
-  { preset:'dps', P:0, contrib:5000,  rate:11,    compound:12, years:5, edOn:true,  taxOn:true,  psr:true },
-  { preset:'wds', P:0, weekly:500,  rate:10.5, compound:12, years:1, actualYears:1, contribFreq:'weekly', edOn:true, taxOn:true, psr:true },
-  { preset:'wds', P:0, weekly:2000, rate:10.5, compound:12, years:1, actualYears:0.5, contribFreq:'weekly', edOn:true, taxOn:true, psr:false },
-  { preset:'mbs', P:500000, contrib:0, rate:10, compound:12, years:3, edOn:true, taxOn:true, psr:true },
-  { preset:'mbs', P:2000000, contrib:0, rate:10, compound:12, years:5, edOn:true, taxOn:true, psr:false },
+  { preset:'fd',  P:100000, contrib:0, rate:9.5,  compound:1,  years:1, actualYears:0.25, edOn:true,  taxOn:true,  psr:true },
+  { preset:'fd',  P:3000000, contrib:0, rate:8,   compound:1,  years:5, edOn:true,  taxOn:true,  psr:true },
+  { preset:'fd',  P:100000, contrib:0, rate:9.5,  compound:1,  years:2, edOn:true, taxOn:true, psr:true },   // ED+tax mandatory now
+  // FD lump-sum hand-checked anchors (gross d-future, P=100000 @ 10%): pro-rated annual
+  // compounding. ED/tax are mandatory (engine ignores these flags) and only affect net,
+  // not the gross-FV anchor: 3mo=102500, 6mo=105000, 12mo=110000, 15mo=112750, 24mo=121000.
+  { preset:'fd',  P:100000, contrib:0, rate:10, compound:1, years:1, actualYears:0.25, edOn:true, taxOn:true, psr:true },   //  3mo -> 102500
+  { preset:'fd',  P:100000, contrib:0, rate:10, compound:1, years:1, actualYears:0.5,  edOn:true, taxOn:true, psr:true },   //  6mo -> 105000
+  { preset:'fd',  P:100000, contrib:0, rate:10, compound:1, years:1, actualYears:1,    edOn:true, taxOn:true, psr:true },   // 12mo -> 110000
+  { preset:'fd',  P:100000, contrib:0, rate:10, compound:1, years:1, actualYears:1.25, edOn:true, taxOn:true, psr:true },   // 15mo -> 112750
+  { preset:'fd',  P:100000, contrib:0, rate:10, compound:1, years:1, actualYears:2,    edOn:true, taxOn:true, psr:true },   // 24mo -> 121000
+  { preset:'dps', P:0, contrib:5000,  rate:11,    compound:1, years:5, edOn:true,  taxOn:true,  psr:true },
+  { preset:'wds', P:0, weekly:500,  rate:10.5, compound:1, years:1, actualYears:1, contribFreq:'weekly', edOn:true, taxOn:true, psr:true },
+  { preset:'wds', P:0, weekly:2000, rate:10.5, compound:1, years:1, actualYears:0.5, contribFreq:'weekly', edOn:true, taxOn:true, psr:false },
+  { preset:'mbs', P:500000, contrib:0, rate:10, compound:1, years:3, edOn:true, taxOn:true, psr:true },
+  { preset:'mbs', P:2000000, contrib:0, rate:10, compound:1, years:5, edOn:true, taxOn:true, psr:false },
   { preset:'custom', P:100000, contrib:2000, contribFreq:'weekly', rate:8.5, compound:12, years:3, edOn:true, taxOn:true, psr:true },
   { preset:'custom', P:100000, contrib:0, rate:8.5, compound:12, years:1.5, edOn:true, taxOn:true, psr:true },   // 6-month-step (18mo) deposit slider value
   // 3-month-step deposit slider values (15/27/39 months → 1.25/2.25/3.25 years), off the old 6-month grid.
@@ -256,15 +266,17 @@ depositCases.push(
 for (const c of depositCases) vectors.deposit.push({ input: c, output: runDeposit(c) });
 
 // FD "double/triple your money" solver — fdMultiplierMonths is pure (extracted above).
-// For a fixed principal P, find the tenor (snapped UP to the 3-month grid, capped at 480mo)
-// that reaches N× gross maturity. grossFV is the exact closed-form FV on that grid (quarterly
-// compounding at rate/4 per quarter = rate/400 as a fraction), matching the deposit FV display.
+// For a fixed principal P, find the smallest tenor on the 3-month grid (capped at 480mo)
+// that reaches N× gross maturity. grossFV is the exact closed-form FV on that grid under
+// ANNUAL compounding with a pro-rated partial year, matching the deposit FV display:
+//   grossFV = P * (1+rate/100)^floor(m/12) * (1 + rate/100*(m%12)/12)
 const FD_MULT_P = 100000;
 vectors.fdMultiplier = [];
 for (const rate of [12, 9.5, 8, 1.75, 1])
   for (const N of [2, 3]) {
     const { months, reached } = fdMultiplierMonths(rate, N);
-    const grossFV = Math.round(FD_MULT_P * Math.pow(1 + rate / 400, months / 3));
+    const r = rate / 100;
+    const grossFV = Math.round(FD_MULT_P * Math.pow(1 + r, Math.floor(months / 12)) * (1 + r * (months % 12) / 12));
     vectors.fdMultiplier.push({ P: FD_MULT_P, rate, N, months, reached, grossFV });
   }
 

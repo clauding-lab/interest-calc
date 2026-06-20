@@ -1321,7 +1321,7 @@ function setPreset(p){
     document.getElementById('d-contrib').value=0; show('d-contrib-wrap',false);
     show('d-freq-wrap',false);
     document.getElementById('d-contrib-freq').value='monthly';
-    document.getElementById('d-freq').value='4'; show('d-compound-wrap',false);
+    document.getElementById('d-freq').value='1'; show('d-compound-wrap',false);   // annual compounding
     document.getElementById('d-rate').value=9.5;
     document.getElementById('d-years').value=12;
     buildTenureChips([{l:'3m',v:3},{l:'6m',v:6},{l:'1y',v:12},{l:'2y',v:24},{l:'3y',v:36}],12);
@@ -1332,7 +1332,7 @@ function setPreset(p){
     document.getElementById('d-contrib-label').textContent='Monthly instalment';
     show('d-freq-wrap',false);
     document.getElementById('d-contrib-freq').value='monthly';
-    document.getElementById('d-freq').value='12'; show('d-compound-wrap',false);
+    document.getElementById('d-freq').value='1'; show('d-compound-wrap',false);   // annual compounding
     document.getElementById('d-rate').value=11;
     document.getElementById('d-years').value=60;
   } else if(p==='wds'){
@@ -1342,7 +1342,7 @@ function setPreset(p){
     document.getElementById('d-principal').value=0;
     document.getElementById('d-weekly').value=500;
     document.getElementById('d-contrib-freq').value='weekly';
-    document.getElementById('d-freq').value='12';
+    document.getElementById('d-freq').value='1';   // annual compounding (pro-rated by weeks elapsed)
     document.getElementById('d-rate').value=10.5;
     document.getElementById('d-years').value=12;
     buildTenureChips([{l:'3m',v:3},{l:'6m',v:6},{l:'9m',v:9},{l:'12m',v:12}],12);
@@ -1352,16 +1352,16 @@ function setPreset(p){
     show('d-freq-wrap',false); show('d-compound-wrap',false);
     show('d-monthly-payout-metric',true);
     document.getElementById('d-contrib-freq').value='monthly';
-    document.getElementById('d-freq').value='12';
+    document.getElementById('d-freq').value='1';   // simple-interest payout — freq is a no-op here; set for consistency
     document.getElementById('d-rate').value=10;
     document.getElementById('d-years').value=36;
   } else {
-    // Custom — restore all defaults
+    // Custom — restore all defaults (annual compounding; compounding selector stays visible)
     document.getElementById('d-principal').value=100000;
     document.getElementById('d-contrib').value=5000;
     document.getElementById('d-rate').value=8.5;
     document.getElementById('d-years').value=180;
-    document.getElementById('d-freq').value='12';
+    document.getElementById('d-freq').value='1';
     document.getElementById('d-contrib-freq').value='monthly';
   }
   calcDeposit();
@@ -1385,14 +1385,19 @@ function selectTenure(months,el){
 }
 
 // ── FD doubling-time solver ──────────────────────────────────────────────────
-// Solve for the FD tenor (on the 3-month quarterly grid) where gross maturity
-// reaches N× the principal. Round quarters UP so the result is always >= N×.
-// FD gross FV = P*(1+rate/400)^(months/3); cap at 480 months (40y).
+// Solve for the smallest FD tenor (on the 3-month grid) where gross maturity reaches
+// N× the principal under ANNUAL compounding with pro-rated partial years:
+//   gross multiplier at month m = (1+rate/100)^floor(m/12) * (1 + rate/100*(m%12)/12)
+// Step the grid m = 3,6,9,… and return the first m whose multiplier >= N.
+// Cap at 480 months (40y); reached:false if unreachable within the cap or rate<=0.
 function fdMultiplierMonths(rate, N){
   if(rate<=0) return {months:480, reached:false};
-  const q=Math.ceil(Math.log(N)/Math.log(1+rate/400));   // quarters, round UP -> reach >= N×
-  const m=3*q;
-  return m>480 ? {months:480, reached:false} : {months:m, reached:true};
+  const r=rate/100;
+  for(let m=3;m<=480;m+=3){
+    const mult=Math.pow(1+r,Math.floor(m/12))*(1+r*(m%12)/12);
+    if(mult>=N) return {months:m, reached:true};
+  }
+  return {months:480, reached:false};
 }
 
 let fdActiveMult=null;   // null | 2 | 3 — sticky FD multiplier selection
@@ -1622,20 +1627,31 @@ function calcDeposit(){
   const fullYears=Math.ceil(years);
 
   if(contribFreq==='weekly'){
-    const rPer=rate/100/n;
     const compEveryW=52/n;
-    let wSinceComp=0;
+    let wSinceComp=0;          // fractional schedule carry — decides WHEN to compound (unchanged)
+    let weeksSinceCompound=0;  // integer weeks elapsed since last credit — drives the PRO-RATED rate
+    // Pro-rated weekly credit: rp = rate/100 * (weeksSinceCompound/52). A final stub at the
+    // deposit's end credits any leftover weeks, mirroring the monthly path's partial-period stub.
     for(let y=1;y<=fullYears;y++){
       const weeksThisYear=(y===fullYears && years!==fullYears)?Math.round((years-(y-1))*52):52;
+      const isFinalYear=(y===fullYears);
       const openNet=netBal;
       let yiGross=0,yiNet=0,yc=0,yTax=0;
       for(let w=0;w<weeksThisYear;w++){
         grossBal+=contribAmt; netBal+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
-        wSinceComp++;
-        if(wSinceComp>=compEveryW){
-          wSinceComp-=compEveryW;
-          const gInt=grossBal*rPer; yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
-          let nInt=netBal*rPer;
+        wSinceComp++; weeksSinceCompound++;
+        const isLastWeek=(isFinalYear && w===weeksThisYear-1);
+        // Compound on the regular schedule, OR a final stub on the deposit's last week
+        // if any weeks remain uncredited (so the leftover earns pro-rated interest).
+        if(wSinceComp>=compEveryW || (isLastWeek && weeksSinceCompound>0)){
+          const isRegular=wSinceComp>=compEveryW;
+          if(isRegular) wSinceComp-=compEveryW;
+          // Regular compound credits the FIXED period rate (keeps whole-period values bit-identical to
+          // the pre-annual engine); only the final partial stub pro-rates by its leftover weeks.
+          const rp=isRegular ? rate/100/n : rate/100*weeksSinceCompound/52;
+          weeksSinceCompound=0;
+          const gInt=grossBal*rp; yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
+          let nInt=netBal*rp;
           let taxAmt=0;
           if(taxOn){taxAmt=nInt*taxRate; nInt-=taxAmt; yTax+=taxAmt; totalTax+=taxAmt;}
           yiNet+=nInt; netBal+=nInt;
@@ -1656,6 +1672,13 @@ function calcDeposit(){
     }
   } else {
     // Monthly contribution path
+    // Compounding credit is PRO-RATED by months elapsed since the last compound:
+    // rp = rate/100 * (monthsSinceCompound/12). The doC triggers (WHEN to compound)
+    // are unchanged; only the rate is now elapsed-pro-rated. For whole periods this is
+    // bit-identical to the old fixed rate/100/n: monthly n=12 fires every month (1/12);
+    // quarterly n=4 fires every 3 months (3/12=1/4); annual n=1 fires at 12 months (12/12).
+    // The partial-final-year stub now credits the correct pro-rated amount, not a full period.
+    let monthsSinceCompound=0;
     for(let y=1;y<=fullYears;y++){
       const monthsThisYear=(y===fullYears && totalMonths%12!==0 && years<fullYears)?(totalMonths-(y-1)*12):12;
       const openNet=netBal;
@@ -1664,9 +1687,11 @@ function calcDeposit(){
         if(!isFD){
           grossBal+=contribAmt; netBal+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
         }
+        monthsSinceCompound++;
         const doC=(n===12||(n===4&&mo%3===2)||(n===2&&mo%6===5)||(n===1&&mo===11)||(monthsThisYear<12&&mo===monthsThisYear-1));
         if(doC){
-          const rp=rate/100/n;
+          const rp=rate/100*monthsSinceCompound/12;
+          monthsSinceCompound=0;
           const gInt=grossBal*rp; yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
           let nInt=netBal*rp;
           let taxAmt=0;
