@@ -1632,18 +1632,30 @@ function calcDeposit(){
     let weeksSinceCompound=0;  // integer weeks elapsed since last credit — drives the PRO-RATED rate
     // Pro-rated weekly credit: rp = rate/100 * (weeksSinceCompound/52). A final stub at the
     // deposit's end credits any leftover weeks, mirroring the monthly path's partial-period stub.
+    //
+    // ANNUAL compounding (n===1) is handled separately (deposit-date pro-rating): each within-year
+    // contribution earns interest ONLY for the weeks it was actually held. A contribution at
+    // 0-indexed week `w` is held (weeksThisYear-w) weeks → earns rate × contrib × (weeksThisYear-w)/52;
+    // the opening balance earns rate × yearOpen × (weeksThisYear/52). The whole year's interest is
+    // credited in ONE shot at year-end — no per-week compound for n===1.
     for(let y=1;y<=fullYears;y++){
       const weeksThisYear=(y===fullYears && years!==fullYears)?Math.round((years-(y-1))*52):52;
       const isFinalYear=(y===fullYears);
       const openNet=netBal;
+      const yearOpenGross=grossBal, yearOpenNet=netBal;   // pre-contribution opening (drives annual pro-rating)
       let yiGross=0,yiNet=0,yc=0,yTax=0;
+      let wGross=0,wNet=0;   // time-weighted within-year contributions (annual path only)
       for(let w=0;w<weeksThisYear;w++){
         grossBal+=contribAmt; netBal+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
+        if(n===1){
+          const heldFrac=(weeksThisYear-w)/52;   // weeks this contribution is held, as a year-fraction
+          wGross+=contribAmt*heldFrac; wNet+=contribAmt*heldFrac;
+        }
         wSinceComp++; weeksSinceCompound++;
         const isLastWeek=(isFinalYear && w===weeksThisYear-1);
         // Compound on the regular schedule, OR a final stub on the deposit's last week
         // if any weeks remain uncredited (so the leftover earns pro-rated interest).
-        if(wSinceComp>=compEveryW || (isLastWeek && weeksSinceCompound>0)){
+        if(n!==1 && (wSinceComp>=compEveryW || (isLastWeek && weeksSinceCompound>0))){
           const isRegular=wSinceComp>=compEveryW;
           if(isRegular) wSinceComp-=compEveryW;
           // Regular compound credits the FIXED period rate (keeps whole-period values bit-identical to
@@ -1657,6 +1669,17 @@ function calcDeposit(){
           yiNet+=nInt; netBal+=nInt;
         }
         weeklyRows.push({week:(y-1)*52+w+1,year:y,weekInYear:w+1,contrib:contribAmt,grossBal:grossBal,netBal:netBal});
+      }
+      if(n===1){
+        // One-shot annual credit: opening earns the full (or partial-final) year; each within-year
+        // contribution earns only for the weeks held (deposit-date pro-rating).
+        const openFrac=weeksThisYear/52;
+        const gInt=rate/100*(yearOpenGross*openFrac+wGross);
+        yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
+        let nInt=rate/100*(yearOpenNet*openFrac+wNet);
+        let taxAmt=0;
+        if(taxOn){taxAmt=nInt*taxRate; nInt-=taxAmt; yTax+=taxAmt; totalTax+=taxAmt;}
+        yiNet+=nInt; netBal+=nInt;
       }
       // Year-end ED — on the GROSS (highest) balance, so source tax never erodes the ED basis (mandatory; NBR rule).
       let yED=0;
@@ -1676,28 +1699,57 @@ function calcDeposit(){
     // rp = rate/100 * (monthsSinceCompound/12). The doC triggers (WHEN to compound)
     // are unchanged; only the rate is now elapsed-pro-rated. For whole periods this is
     // bit-identical to the old fixed rate/100/n: monthly n=12 fires every month (1/12);
-    // quarterly n=4 fires every 3 months (3/12=1/4); annual n=1 fires at 12 months (12/12).
-    // The partial-final-year stub now credits the correct pro-rated amount, not a full period.
+    // quarterly n=4 fires every 3 months (3/12=1/4).
+    //
+    // ANNUAL compounding (n===1) is handled separately: instead of crediting a full year's
+    // interest on the whole closing balance at month 11, each within-year contribution earns
+    // interest ONLY for the months it was actually held (deposit-date pro-rating). A contribution
+    // added at 0-indexed month `mo` is held (monthsThisYear-mo) months, so it earns
+    // rate × contribAmt × (monthsThisYear-mo)/12; the opening balance (prior years) earns
+    // rate × yearOpen × (monthsThisYear/12). The whole year's interest is computed in ONE shot
+    // at year-end — no per-month doC for n===1. FD (no contributions) is unaffected: wGross stays
+    // 0, so yGrossInt = rate × open × monthsThisYear/12, identical to the prior partial-period stub.
     let monthsSinceCompound=0;
     for(let y=1;y<=fullYears;y++){
       const monthsThisYear=(y===fullYears && totalMonths%12!==0 && years<fullYears)?(totalMonths-(y-1)*12):12;
       const openNet=netBal;
+      const yearOpenGross=grossBal, yearOpenNet=netBal;   // pre-contribution opening (drives annual pro-rating)
       let yiGross=0,yiNet=0,yc=0,yTax=0;
+      let wGross=0,wNet=0;   // time-weighted within-year contributions (annual path only)
       for(let mo=0;mo<monthsThisYear;mo++){
         if(!isFD){
           grossBal+=contribAmt; netBal+=contribAmt; yc+=contribAmt; totalContrib+=contribAmt;
+          if(n===1){
+            // months this contribution is held, expressed as a year-fraction
+            const heldFrac=(monthsThisYear-mo)/12;
+            wGross+=contribAmt*heldFrac; wNet+=contribAmt*heldFrac;
+          }
         }
         monthsSinceCompound++;
-        const doC=(n===12||(n===4&&mo%3===2)||(n===2&&mo%6===5)||(n===1&&mo===11)||(monthsThisYear<12&&mo===monthsThisYear-1));
-        if(doC){
-          const rp=rate/100*monthsSinceCompound/12;
-          monthsSinceCompound=0;
-          const gInt=grossBal*rp; yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
-          let nInt=netBal*rp;
-          let taxAmt=0;
-          if(taxOn){taxAmt=nInt*taxRate; nInt-=taxAmt; yTax+=taxAmt; totalTax+=taxAmt;}
-          yiNet+=nInt; netBal+=nInt;
+        if(n!==1){
+          const doC=(n===12||(n===4&&mo%3===2)||(n===2&&mo%6===5)||(monthsThisYear<12&&mo===monthsThisYear-1));
+          if(doC){
+            const rp=rate/100*monthsSinceCompound/12;
+            monthsSinceCompound=0;
+            const gInt=grossBal*rp; yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
+            let nInt=netBal*rp;
+            let taxAmt=0;
+            if(taxOn){taxAmt=nInt*taxRate; nInt-=taxAmt; yTax+=taxAmt; totalTax+=taxAmt;}
+            yiNet+=nInt; netBal+=nInt;
+          }
         }
+      }
+      if(n===1){
+        // One-shot annual credit: opening earns the full (or partial-final) year; each
+        // within-year contribution earns only for the months held (deposit-date pro-rating).
+        monthsSinceCompound=0;
+        const openFrac=monthsThisYear/12;
+        const gInt=rate/100*(yearOpenGross*openFrac+wGross);
+        yiGross+=gInt; grossBal+=gInt; totalGrossInterest+=gInt;
+        let nInt=rate/100*(yearOpenNet*openFrac+wNet);
+        let taxAmt=0;
+        if(taxOn){taxAmt=nInt*taxRate; nInt-=taxAmt; yTax+=taxAmt; totalTax+=taxAmt;}
+        yiNet+=nInt; netBal+=nInt;
       }
       // Year-end ED — on the GROSS (highest) balance, so source tax never erodes the ED basis (mandatory; NBR rule).
       let yED=0;
