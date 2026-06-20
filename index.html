@@ -519,16 +519,8 @@ html.dark-mode .green-sl { color: #92d050; }
 
       <div class="divider"></div>
 
-      <!-- ADJUSTMENTS: ED & SOURCE TAX -->
+      <!-- ADJUSTMENTS: Excise duty + source tax are MANDATORY (always applied; toggles removed 2026-06-20). Only PSR varies the source-tax rate. -->
       <div class="controls-title">Adjustments</div>
-      <div class="toggle-row">
-        <span class="toggle-label">Excise duty (ED)</span>
-        <label class="toggle-switch"><input type="checkbox" id="d-ed-toggle" aria-label="Toggle excise duty" checked onchange="calcDeposit()"><span class="slider"></span></label>
-      </div>
-      <div class="toggle-row">
-        <span class="toggle-label">Source tax on interest</span>
-        <label class="toggle-switch"><input type="checkbox" id="d-tax-toggle" aria-label="Toggle source tax on interest" checked onchange="calcDeposit()"><span class="slider"></span></label>
-      </div>
       <div class="field" id="d-tin-wrap">
         <div class="field-header"><span class="field-label">Return submission (PSR)</span></div>
         <select id="d-tin" aria-label="Proof of return submission status" onchange="calcDeposit()">
@@ -1482,8 +1474,8 @@ function calcDeposit(){
   const rate=+document.getElementById('d-rate').value;
   const n=+document.getElementById('d-freq').value;
   const tableView=document.getElementById('d-table-view').value;
-  const edOn=document.getElementById('d-ed-toggle').checked;
-  const taxOn=document.getElementById('d-tax-toggle').checked;
+  // Excise duty + source tax are MANDATORY (toggles removed 2026-06-20): always applied. Only PSR (d-tin) varies the source-tax rate (10%/15%).
+  const edOn=true, taxOn=true;
   const taxRate=document.getElementById('d-tin').value==='tin'?CONFIG.sourceTax.withReturnProof:CONFIG.sourceTax.withoutReturnProof;
 
   // Tenor is now in MONTHS (3-month grid). Tenure chips override via dataset.actual (also months).
@@ -1650,10 +1642,10 @@ function calcDeposit(){
         }
         weeklyRows.push({week:(y-1)*52+w+1,year:y,weekInYear:w+1,contrib:contribAmt,grossBal:grossBal,netBal:netBal});
       }
-      // Year-end ED
+      // Year-end ED — on the GROSS (highest) balance, so source tax never erodes the ED basis (mandatory; NBR rule).
       let yED=0;
       if(edOn){
-        yED=getED(netBal);
+        yED=getED(grossBal);
         netBal-=yED; totalED+=yED;
       }
       labels.push(years<1?totalMonths+'m':'Yr '+y);
@@ -1682,10 +1674,10 @@ function calcDeposit(){
           yiNet+=nInt; netBal+=nInt;
         }
       }
-      // Year-end ED
+      // Year-end ED — on the GROSS (highest) balance, so source tax never erodes the ED basis (mandatory; NBR rule).
       let yED=0;
       if(edOn){
-        yED=getED(netBal);
+        yED=getED(grossBal);
         netBal-=yED; totalED+=yED;
       }
       labels.push(years<1?totalMonths+'m':'Yr '+y);

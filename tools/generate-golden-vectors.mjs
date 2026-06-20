@@ -240,10 +240,10 @@ for (const P of [0, 100000, 1000000]) for (const contrib of [0, 5000, 50000])
 depositCases.push(
   { preset:'fd',  P:100000, contrib:0, rate:9.5,  compound:4,  years:1, actualYears:0.25, edOn:true,  taxOn:true,  psr:true },
   { preset:'fd',  P:3000000, contrib:0, rate:8,   compound:4,  years:5, edOn:true,  taxOn:true,  psr:true },
-  { preset:'fd',  P:100000, contrib:0, rate:9.5,  compound:4,  years:2, edOn:false, taxOn:false, psr:true },
+  { preset:'fd',  P:100000, contrib:0, rate:9.5,  compound:4,  years:2, edOn:true, taxOn:true, psr:true },   // ED+tax mandatory now
   { preset:'dps', P:0, contrib:5000,  rate:11,    compound:12, years:5, edOn:true,  taxOn:true,  psr:true },
   { preset:'wds', P:0, weekly:500,  rate:10.5, compound:12, years:1, actualYears:1, contribFreq:'weekly', edOn:true, taxOn:true, psr:true },
-  { preset:'wds', P:0, weekly:2000, rate:10.5, compound:12, years:1, actualYears:0.5, contribFreq:'weekly', edOn:true, taxOn:false, psr:false },
+  { preset:'wds', P:0, weekly:2000, rate:10.5, compound:12, years:1, actualYears:0.5, contribFreq:'weekly', edOn:true, taxOn:true, psr:false },
   { preset:'mbs', P:500000, contrib:0, rate:10, compound:12, years:3, edOn:true, taxOn:true, psr:true },
   { preset:'mbs', P:2000000, contrib:0, rate:10, compound:12, years:5, edOn:true, taxOn:true, psr:false },
   { preset:'custom', P:100000, contrib:2000, contribFreq:'weekly', rate:8.5, compound:12, years:3, edOn:true, taxOn:true, psr:true },
