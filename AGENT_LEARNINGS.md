@@ -37,6 +37,20 @@ When something ships broken, when a methodology gap is exposed, or when a smoke 
 
 ## Entries (most recent first)
 
+## 2026-06-20 — feat/tenor-3month-grid | DPS/WDS ran with a phantom Tk 10,000 principal — golden vectors couldn't see it; a live-UI UAT did
+
+**Trigger:** Owner-requested UAT of the deposit overhaul. Driving the LIVE web app via Playwright showed DPS interest Tk 1,02,783 / invested Tk 3,10,000 — but the golden vector and iOS both said Tk 95,932 / Tk 3,00,000.
+
+**What went wrong:** DPS/WDS are zero-principal recurring schemes; `setPreset` sets `d-principal.value = 0` and hides the field. But `<input type="range" id="d-principal" min="10000">` **clamps a 0 up to its min**, so `calcDeposit` read a phantom Tk 10,000 lump sum into both. Pre-existing on `main` → the deployed production app inflated DPS/WDS since launch. The golden-vector generator feeds inputs through a **plain DOM stub** (`globalThis.document`) that does NOT clamp, so its DPS/WDS cases used P=0 and passed — the bug lived entirely in the gap between the stub and a real range input.
+
+**Lesson:** Engine/golden-vector tests that inject inputs directly bypass UI-layer input transforms (min-clamping, formatting, coercion); a bug in that transform passes every vector yet corrupts the live app. Money-critical flows need a live-UI pass, not just engine parity.
+
+**Prevention:** For deposit/loan money flows, run a Playwright pass that drives the real inputs and reads rendered outputs against expected values — especially any preset that sets a value the slider's min/max would clamp. "Vectors green" is necessary, not sufficient.
+
+**Hotfix:** `calcDeposit` forces `P=0` for dps/wds presets (web `f631465`); iOS engine mirrored the guard (`basePrincipal=0`, incalc-ios `68b9f28`). Vectors bit-identical (generator already fed P=0). Cache → v13.
+
+**Cross-references:** AGENTS.md "Deposit calculation rules"; auto-memory `deposit-calculation-rules`; `docs/UAT-deposit-rules-2026-06-20.md`.
+
 ## 2026-06-11 — main | Service worker cache purge nearly wiped a sibling app — GitHub Pages project sites share one origin
 
 **Trigger:** Pre-deploy adversarial review of the v2 cache bump caught it before shipping. `sw.js`'s activate handler deleted *every* Cache Storage entry not named `incalc-v2` — but `clauding-lab.github.io` hosts multiple project sites (this app at `/interest-calc/`, SME-360 at `/SME-360/`), and Cache Storage is **origin**-scoped, not path-scoped. Deploying the bump would have deleted SME-360's `sme360-v2` cache in every returning browser, breaking its offline mode with no self-heal (its SW never re-caches at runtime).

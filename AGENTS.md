@@ -45,6 +45,19 @@ There is no unit-test suite checked in. Financial changes are verified by extrac
 10. **The golden-vector generator eval-extracts functions from `index.html` BY NAME** (`tools/generate-golden-vectors.mjs`, the `for (const fn of [...])` list). If a function it extracts calls a NEW helper, that helper MUST be added to the extract list or the generator throws `ReferenceError: <helper> is not defined` on the next run — `calcDeposit` calling `fmtTenor` hit exactly this (2026-06-15). After adding/regenerating, prove whole-year parity with an old-vs-new diff (the prior values must be bit-identical; only renamed inputs + new cases should differ).
 11. **Loan tenor is in MONTHS (6-month-step slider); Deposit tenor stays in fractional YEARS.** `buildSchedule`/`calcEffectiveRate`/`scenarioCalc` take **months** with a partial final year (whole-year results bit-identical to the old years-based loop). `calcDeposit` is unchanged — it already handled fractional years (`years*12` rounding); the deposit slider just steps `0.5`. All three tabs read out via `fmtTenor(months)` ("Ny Mm"). Don't "unify" Deposit to months. (See `AGENT_LEARNINGS.md` 2026-06-15.)
 
+## Deposit calculation rules (2026-06-20 — money-critical, golden-vector-locked, owner-confirmed)
+
+NBR/IDLC product conventions, not arbitrary. Do NOT change without owner sign-off + a regenerated golden-vector before/after diff (only the intended cases may move). NB: the Deposit tenor is now a **3-month MONTHS slider** (supersedes landmine 11's "fractional years"); `calcDeposit` derives `years = months/12`.
+
+1. **Excise duty + source tax are MANDATORY** — no on/off toggles (removed). Only the **PSR** control varies the source-tax rate (10% return-filed / 15% no-proof). Both deductions always apply.
+2. **Excise duty is per year on the year's GROSS (highest) balance** — `getED(grossBal)`, NOT the post-tax `netBal`, so source tax never erodes the ED basis. Slabs in `getED()` with a fiscal-year comment.
+3. **Compounding: FD / DPS / WDS / MBS = ANNUAL.** Only **Custom** exposes the Mo/Qtr/Semi/Yr selector. MBS is simple-interest payout (`P·rate/12` per month, principal at maturity — no compounding).
+4. **Interest is credited pro-rated by actual elapsed time.** A partial/sub-year period earns its fraction (3-month FD = `rate·3/12`, not a full year). Whole monthly/quarterly periods MUST stay bit-identical to the pre-2026-06-20 engine — the regeneration diff proves it.
+5. **DPS/WDS recurring contributions (annual) are pro-rated from deposit date:** the year-opening balance earns the full year; each within-year contribution earns `(months held / 12)`. Year-end interest = `rate · (opening · monthsThisYear/12 + Σ contrib · monthsHeld/12)`. Applies to ANY annual+contribution case (incl. Custom set to annual). FD (no contribution) + non-annual compounding are unaffected.
+6. **FD 2×/3× "grow my money" solver is annual-grid:** smallest 3-month-grid month `m` where `(1+rate/100)^floor(m/12) · (1+rate/100·(m%12)/12) ≥ N` (cap 480), targeting gross maturity.
+
+(See `AGENT_LEARNINGS.md` 2026-06-20.)
+
 ## Cross-cutting rules
 
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
