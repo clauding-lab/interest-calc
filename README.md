@@ -10,6 +10,8 @@
 
 <a href="https://apps.apple.com/app/id6780260202"><img src="appstore-badge-black.svg" alt="Download InCalc BD on the App Store" height="48"></a>
 
+**Web v1.1.2** · **iOS InCalc BD v1.1.1** — [Releases](https://github.com/clauding-lab/interest-calc/releases)
+
 </div>
 
 ---
@@ -34,15 +36,23 @@ It's built by a banker for the people who need the *local* numbers right — the
 | **Settlement IRR** | XIRR on a loan settlement: import the working **Excel** file (or start blank), enter receivables / waivers and the payment schedule, and get the annualized return. |
 | **Compare** | Two deposit or loan scenarios side by side. |
 
+## Screenshots
+
+<div align="center">
+<img src="w3-deposit-fd.png" width="300" alt="Deposit — FD projection with excise duty and source tax">
+&nbsp;&nbsp;
+<img src="w12-loan-chips.png" width="300" alt="Loan — EMI and amortization with tenor quick-pick chips">
+</div>
+
 ## Features
 
 - 🇧🇩 **Bangladesh-correct by default** — NBR excise duty charged on each year's gross balance, source tax (TDS) at 10% / 15% depending on PSR return-filing status, applied as mandatory deductions.
-- 📊 **Visual results** — growth-over-time charts, a principal-vs-interest split, and switchable year / month breakdown tables.
+- 📊 **Visual results** — growth-over-time charts, a principal-vs-interest split, and a year-by-year breakdown table (week-by-week for the WDS weekly-deposit scheme).
 - 🗣️ **Plain-English + বাংলা explainers** — a "What this means for you · আপনার জন্য এর মানে কী" note under every result, so the numbers actually make sense.
 - 💱 **BDT ⇄ USD display toggle** — all maths runs in BDT; the currency switch only converts at the display layer.
 - 🌙 **Light / dark theme.**
 - 📄 **Export to PDF** / print-friendly layouts for sharing or filing.
-- 📲 **Installable PWA** — add to home screen; works fully offline after the first load.
+- 📲 **Installable PWA** — add to home screen; works offline after the first load (the core calculators always; charts and Excel import once their CDN assets have cached).
 - 🔒 **100% client-side** — no backend, no accounts, no tracking. Your numbers never leave your device.
 
 ## Get it
@@ -70,7 +80,7 @@ ruby -run -ehttpd . --port=8080   # then open http://localhost:8080
 
 ## Regulatory values
 
-Tax rates, the processing-fee rate, and the display FX rate live in one `CONFIG` block near the top of the `index.html` script. Excise-duty slabs live in `getED()` with a fiscal-year comment. **Re-check both after every Bangladesh national budget.**
+Tax rates, the processing-fee rate, and the display FX rate live in one `CONFIG` block near the top of the `index.html` script. Excise-duty slabs live in `getED()` with a fiscal-year comment — they currently reflect **FY2026-27** (excise-duty exemption ৳4,00,000; source tax 10% with PSR / 15% without). **Re-check both after every Bangladesh national budget.**
 
 ## Disclaimer
 
