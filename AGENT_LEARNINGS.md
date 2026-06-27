@@ -37,6 +37,20 @@ When something ships broken, when a methodology gap is exposed, or when a smoke 
 
 ## Entries (most recent first)
 
+## 2026-06-27 — v1.1.2 | GitHub Pages legacy auto-build silently skipped a push — "pushed = live" was false
+
+**Trigger:** Shipped the new "%↑ Rate-up" app icon (web v1.1.2, commit `0cb8ab5`). After `git push origin main`, the live `incalc.clauding-lab.com/icon-192.png` kept serving the old ৳ icon for >7 min. A cache-busted `curl` plus `gh api .../pages/builds/latest` showed the latest *completed* Pages build was still `a7c251f` (Jun 22) — Pages never built the new commit at all. `last-modified` was Jun 22 and `content-length` was the old icon's exact 7930 bytes.
+
+**What went wrong:** GitHub Pages legacy ("deploy from branch") auto-build is event-driven and **occasionally does not fire** on a push — no error, no queued build, it just doesn't trigger. AGENTS.md says "commit to main; GitHub Pages publishes automatically," which is true ~99% of the time and lulls you into trusting it. The push succeeded; the deploy silently didn't.
+
+**Lesson:** A successful `git push` is NOT proof of a live deploy. Verify the Pages build actually fired before claiming the site is updated.
+
+**Prevention:** After any web release push: (1) `gh api repos/clauding-lab/interest-calc/pages/builds/latest --jq .commit` and confirm it equals `git rev-parse HEAD`; (2) if not, force it — `gh api -X POST repos/clauding-lab/interest-calc/pages/builds`; (3) confirm the live asset by hash, not by assumption — `curl -s <url> | shasum -a 256` vs the local file. Never report a web change as live on push alone.
+
+**Hotfix:** Forced a build via `POST .../pages/builds` → Pages built `0cb8ab5` in ~20s → live icon hash matched local. No code change needed.
+
+**Cross-references:** auto-memory `incalc-icon-rateup-2026-06-27`; global rulebook `~/.claude/AGENT_LEARNINGS.md` (GitHub Pages deploy verification); AGENTS.md deploy row — pair "publishes automatically" with *verify it did*.
+
 ## 2026-06-20 — feat/tenor-3month-grid | DPS/WDS ran with a phantom Tk 10,000 principal — golden vectors couldn't see it; a live-UI UAT did
 
 **Trigger:** Owner-requested UAT of the deposit overhaul. Driving the LIVE web app via Playwright showed DPS interest Tk 1,02,783 / invested Tk 3,10,000 — but the golden vector and iOS both said Tk 95,932 / Tk 3,00,000.
